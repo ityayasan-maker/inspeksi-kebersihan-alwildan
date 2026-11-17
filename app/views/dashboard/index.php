@@ -1,17 +1,34 @@
 <?php
-$unitLabel = ['smp'=>'SMP','smk'=>'SMK','yayasan'=>'Yayasan','masjid'=>'Masjid'];
-$unitColor = ['smp'=>'#22c55e','smk'=>'#3b82f6','yayasan'=>'#f59e0b','masjid'=>'#06b6d4'];
+$unitLabel = [
+    'alwildan_8' => 'Al-Wildan 8',
+    'tk'         => 'TK Al-Wildan',
+    'sd'         => 'SD Al-Wildan',
+    'smp'        => 'SMP Al-Wildan',
+    'sma'        => 'SMA Al-Wildan',
+    'asrama'     => 'Asrama',
+    'fasilitas'  => 'Fasilitas'
+];
+$unitColor = [
+    'alwildan_8' => '#1a56db',
+    'tk'         => '#06b6d4',
+    'sd'         => '#22c55e',
+    'smp'        => '#3b82f6',
+    'sma'        => '#8b5cf6',
+    'asrama'     => '#f59e0b',
+    'fasilitas'  => '#64748b'
+];
 ?>
 
 <!-- ── Kartu statistik ── -->
 <div class="row g-3 mb-4 stagger-children">
 
   <?php
+  $rataSkor = (float)($kartu['rata_skor'] ?? 0);
   $cards = [
-    ['label'=>'Inspeksi Hari Ini', 'val'=>$kartu['inspeksi_hari_ini'], 'icon'=>'clipboard2-check',  'color'=>'success',   'sub'=>'Total: '.$kartu['total_inspeksi']],
-    ['label'=>'Inspeksi Bulan Ini','val'=>$kartu['inspeksi_bulan'],     'icon'=>'calendar-check',    'color'=>'primary',   'sub'=>date('F Y')],
-    ['label'=>'Rata-rata Skor',    'val'=>number_format($kartu['rata_skor'],1), 'icon'=>'speedometer2','color'=>($kartu['rata_skor']>=85?'success':($kartu['rata_skor']>=55?'warning':'danger')), 'sub'=>'Semua waktu'],
-    ['label'=>'Perlu Tindak Lanjut','val'=>$kartu['perlu_tindak'],     'icon'=>'exclamation-triangle','color'=>'danger',   'sub'=>'7 hari terakhir'],
+    ['label'=>'Inspeksi Hari Ini', 'val'=>$kartu['inspeksi_hari_ini'] ?? 0, 'icon'=>'clipboard2-check',  'color'=>'success',   'sub'=>'Total: '.($kartu['total_inspeksi'] ?? 0)],
+    ['label'=>'Inspeksi Bulan Ini','val'=>$kartu['inspeksi_bulan'] ?? 0,     'icon'=>'calendar-check',    'color'=>'primary',   'sub'=>date('F Y')],
+    ['label'=>'Rata-rata Skor',    'val'=>number_format($rataSkor, 1),       'icon'=>'speedometer2',      'color'=>($rataSkor>=85?'success':($rataSkor>=55?'warning':'danger')), 'sub'=>'Semua waktu'],
+    ['label'=>'Perlu Tindak Lanjut','val'=>$kartu['perlu_tindak'] ?? 0,      'icon'=>'exclamation-triangle','color'=>'danger',   'sub'=>'7 hari terakhir'],
   ];
   foreach ($cards as $c):
   ?>

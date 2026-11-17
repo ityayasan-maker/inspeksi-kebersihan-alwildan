@@ -129,7 +129,7 @@ class Uploader
             if ($sbResult['success']) {
                 return [
                     'success'  => true,
-                    'filename' => $storagePath,
+                    'filename' => $filename,
                     'url'      => $sbResult['url'],
                     'error'    => '',
                 ];

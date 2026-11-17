@@ -93,11 +93,12 @@ tr:nth-child(even) td { background:#fafbfc; }
   <!-- Header dokumen -->
   <div class="print-header">
     <div class="logo-area">
-      <div class="logo-icon">📋</div>
+      <div style="width:48px;height:48px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:3px;display:flex;align-items:center;justify-content:center;">
+        <img src="<?= Helper::baseUrl('img/logo-alwildan.png') ?>" alt="Logo" style="width:100%;height:100%;object-fit:contain;">
+      </div>
       <div>
-        <div class="org-name">YAYASAN AMBADAR</div>
-        <div class="org-sub">Al-Wildan Islamic School 8 Kemang Bogor</div>
-        <div class="org-sub" style="color:#888">Laporan Inspeksi Kebersihan</div>
+        <div class="org-name" style="color:#0f2744;font-size:16px;font-weight:700;">AL-WILDAN ISLAMIC SCHOOL 8</div>
+        <div class="org-sub" style="color:#475569;font-size:12px;">Kemang Bogor &bull; Laporan Resmi Inspeksi Kebersihan</div>
       </div>
     </div>
     <div class="doc-info">
@@ -202,8 +203,9 @@ tr:nth-child(even) td { background:#fafbfc; }
       <tr>
         <th style="width:32px">#</th>
         <th>Aspek Kebersihan</th>
-        <th style="width:120px">Kondisi</th>
+        <th style="width:110px">Kondisi</th>
         <th style="width:50px;text-align:center">Skor</th>
+        <th style="width:90px;text-align:center">Foto Bukti</th>
         <th>Catatan Temuan</th>
       </tr>
     </thead>
@@ -224,6 +226,13 @@ tr:nth-child(even) td { background:#fafbfc; }
         </td>
         <td style="text-align:center;font-weight:700;color:<?= $det['skor']>=85?'#166534':($det['skor']>=55?'#854d0e':'#991b1b') ?>">
           <?= $det['skor'] ?>
+        </td>
+        <td style="text-align:center">
+          <?php if (!empty($det['foto'])): ?>
+            <img src="<?= Helper::uploadUrl("inspeksi/{$inspeksi['id']}/{$det['foto']}") ?>" alt="Foto" style="width:65px;height:48px;object-fit:cover;border-radius:4px;border:1px solid #ccc;">
+          <?php else: ?>
+            <span style="color:#aaa;font-size:11px">—</span>
+          <?php endif; ?>
         </td>
         <td style="color:#666"><?= Helper::e($det['catatan'] ?? '—') ?></td>
       </tr>
@@ -257,8 +266,8 @@ tr:nth-child(even) td { background:#fafbfc; }
   <!-- Footer -->
   <div class="print-footer">
     <span>Dicetak: <?= Helper::formatDatetime(date('Y-m-d H:i:s')) ?></span>
-    <span>Sistem Inspeksi Kebersihan — Yayasan Am Badar</span>
-    <span>Dokumen Resmi — Konfidensial</span>
+    <span>Al-Wildan Islamic School 8 Kemang Bogor</span>
+    <span>Dokumen Resmi &bull; Konfidensial</span>
   </div>
 
 </div><!-- /container -->

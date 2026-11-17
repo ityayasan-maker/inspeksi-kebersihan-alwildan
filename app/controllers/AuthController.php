@@ -12,7 +12,7 @@ class AuthController extends Controller
     /* ── GET /login ─────────────────────────────────────── */
     public function showLogin(): void
     {
-        if (Session::isLoggedIn()) {
+        if (Session::isLoggedIn() || AuthMiddleware::tryAutoLoginFromCookie()) {
             $this->redirect('dashboard');
         }
         $timeout = isset($_GET['timeout']);
@@ -69,6 +69,25 @@ class AuthController extends Controller
         Session::set('user_photo', $user['photo']);
         Session::set('last_activity', time());
 
+        // Buat persistent auth token (90 hari) agar di PWA/Mobile tidak perlu login lagi
+        $secret = getenv('SUPABASE_SECRET_KEY') ?: 'ALWILDAN_SECRET_KEY_2026';
+        $exp = time() + (86400 * 90);
+        $sig = hash_hmac('sha256', $user['id'] . '|' . $user['email'] . '|' . $user['password'], $secret);
+        $token = base64_encode(json_encode([
+            'id'    => $user['id'],
+            'email' => $user['email'],
+            'exp'   => $exp,
+            'sig'   => $sig,
+        ]));
+
+        setcookie('alwildan_pwa_token', $token, [
+            'expires'  => $exp,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+
         // Regenerate session ID (fixation prevention)
         session_regenerate_id(true);
         Session::regenerateCsrf();
@@ -99,6 +118,16 @@ class AuthController extends Controller
         if ($userId) {
             $this->logActivity('logout', 'auth', $userId, 'Logout');
         }
+
+        // Hapus persistent cookie token
+        setcookie('alwildan_pwa_token', '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+
         Session::destroy();
         $this->redirect('login');
     }

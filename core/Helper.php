@@ -119,16 +119,13 @@ class Helper
     public static function unitList(): array
     {
         return [
-            'al_wildan_1' => 'Al Wildan 1',
-            'al_wildan_2' => 'Al Wildan 2',
-            'al_wildan_3' => 'Al Wildan 3',
-            'tk'          => 'TK Al Wildan',
-            'sd'          => 'SD Al Wildan',
-            'smp'         => 'SMP Al Wildan',
-            'sma'         => 'SMA Al Wildan',
-            'yayasan'     => 'Kantor Yayasan Am Badar',
-            'masjid'      => 'Masjid',
-            'lainnya'     => 'Lainnya',
+            'alwildan_8' => 'Al-Wildan 8 Kemang Bogor',
+            'tk'         => 'TK Al-Wildan',
+            'sd'         => 'SD Al-Wildan',
+            'smp'        => 'SMP Al-Wildan',
+            'sma'        => 'SMA Al-Wildan',
+            'asrama'     => 'Asrama / Boarding',
+            'fasilitas'  => 'Fasilitas & Area Umum',
         ];
     }
 
@@ -143,14 +140,13 @@ class Helper
     {
         $key = strtolower(trim($unit));
         $class = match($key) {
-            'smp'       => 'success',
-            'smk'       => 'primary',
-            'yayasan'   => 'warning',
-            'masjid'    => 'info',
-            'al_wildan' => 'danger',
-            'sd'        => 'secondary',
-            'tk'        => 'info',
-            default     => 'dark',
+            'alwildan_8' => 'primary',
+            'tk'         => 'info',
+            'sd'         => 'success',
+            'smp'        => 'primary',
+            'sma'        => 'dark',
+            'asrama'     => 'warning',
+            default      => 'secondary',
         };
         $label = self::unitLabel($unit);
         return "<span class=\"badge bg-{$class}\">" . self::e($label) . "</span>";

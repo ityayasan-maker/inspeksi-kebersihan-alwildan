@@ -16,6 +16,11 @@
 <link rel="apple-touch-icon" href="<?= Helper::baseUrl('icons/apple-touch-icon.png') ?>">
 <link rel="icon" type="image/png" sizes="192x192" href="<?= Helper::baseUrl('icons/icon-192x192.png') ?>">
 
+<!-- Google Fonts: Poppins -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <!-- Bootstrap 5 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <!-- Bootstrap Icons -->
@@ -24,6 +29,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 
 <style>
+* { font-family: 'Poppins', sans-serif !important; }
 :root {
   --blue-dark:   #0a192f;
   --blue-navy:   #0f2744;
@@ -221,9 +227,8 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
       <img src="<?= Helper::baseUrl('img/logo-alwildan.png') ?>" alt="Logo Al Wildan" style="width:100%; height:100%; object-fit:contain;">
     </div>
     <div class="sb-brand-text">
-      <strong style="color:#fff; font-size:12.5px;">Inspeksi Kebersihan</strong>
-      <span style="color:#93c5fd; font-size:10.5px; display:block; line-height:1.2;">Al-Wildan 8 Kemang Bogor</span>
-      <span style="color:#60a5fa; font-size:9.5px; opacity:0.85;">Dev: Yayasan Ambadar</span>
+      <strong style="color:#fff; font-size:13px; font-weight:700;">Inspeksi Kebersihan</strong>
+      <span style="color:#93c5fd; font-size:10.5px; display:block; line-height:1.2;">Al-Wildan 8 Kemang</span>
     </div>
   </a>
 
@@ -341,9 +346,8 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
 <main id="main-content">
   <?= Helper::flashAlert() ?>
   <?= $content ?? '' ?>
-  <footer class="mt-5 py-3 text-center text-muted border-top" style="font-size: 11.5px;">
-    &copy; <?= date('Y') ?> <strong>Al-Wildan Islamic School 8 Kemang Bogor</strong> &bull; Sistem Inspeksi Kebersihan<br>
-    <span class="text-secondary">Dikembangkan oleh: <strong>Yayasan Ambadar</strong></span>
+  <footer class="mt-5 py-3 text-center text-muted border-top" style="font-size: 12px;">
+    &copy; <?= date('Y') ?> <strong>Al-Wildan Islamic School 8 Kemang Bogor</strong> &bull; Sistem Inspeksi Kebersihan
   </footer>
 </main>
 
