@@ -13,13 +13,18 @@ class DashboardController extends Controller
     /* ── GET /dashboard ──────────────────────────────────── */
     public function index(): void
     {
-        $kartu     = $this->model->statsKartu();
-        $aktivitas = $this->model->aktivitasTerbaru(8);
-        $masalah   = $this->model->areaBermasalah(5);
-        $ranking   = $this->model->rankingPetugas(5);
-        $pageTitle = 'Dashboard';
+        $kartu      = $this->model->statsKartu();
+        $aktivitas  = $this->model->aktivitasTerbaru(8);
+        $masalah    = $this->model->areaBermasalah(5);
+        $ranking    = $this->model->rankingPetugas(5);
+        $tren       = $this->model->trenHarian(30);
+        $distribusi = $this->model->distribusiStatus();
+        $unit       = $this->model->distribusiUnit();
+        $heatmap    = $this->model->heatmapRuangan();
+        $pageTitle  = 'Dashboard';
+
         $this->layout('dashboard.index', compact(
-            'kartu','aktivitas','masalah','ranking','pageTitle'
+            'kartu','aktivitas','masalah','ranking','tren','distribusi','unit','heatmap','pageTitle'
         ));
     }
 

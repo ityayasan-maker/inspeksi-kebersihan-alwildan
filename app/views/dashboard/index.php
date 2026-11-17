@@ -270,11 +270,22 @@ Chart.defaults.color       = '#6b7280';
 
 let chartTren, chartPie, chartUnit, chartDonut;
 let trenData = [], currentChartType = 'bar';
+const initialStats = <?= json_encode([
+  'tren'       => $tren ?? [],
+  'distribusi' => $distribusi ?? [],
+  'unit'       => $unit ?? [],
+  'heatmap'    => $heatmap ?? []
+]) ?>;
 
 /* ── Init on load ────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initCharts();
-  loadStats();
+  if (initialStats) {
+    updateTrenChart(initialStats.tren);
+    updatePieChart(initialStats.distribusi);
+    updateUnitChart(initialStats.unit);
+    updateDonut(initialStats.heatmap);
+  }
   updateLastRefresh();
   // Auto-refresh setiap 5 menit
   setInterval(loadStats, 300000);

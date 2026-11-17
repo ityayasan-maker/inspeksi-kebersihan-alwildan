@@ -237,34 +237,14 @@ async function fetchJSON(url, options = {}) {
   return res.json();
 }
 
-/* ── Page transitions ───────────────────────────────────────── */
+/* ── Page transitions (Instant render) ─────────────────────── */
 function initPageAnimations() {
-  // Fade in page cards
-  document.querySelectorAll('.page-card').forEach((el, i) => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(8px)';
-    el.style.transition = `opacity .3s ease ${i * 0.05}s, transform .3s ease ${i * 0.05}s`;
-    requestAnimationFrame(() => {
-      el.style.opacity = '1';
-      el.style.transform = 'translateY(0)';
-    });
-  });
+  // Fast display without artificial delays
 }
 
-/* ── Mobile: double-tap to close sidebar ────────────────────── */
+/* ── Mobile sidebar handling ────────────────────────────────── */
 function initMobileSidebar() {
-  let lastTap = 0;
-  document.addEventListener('touchend', e => {
-    const now = Date.now();
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar && sidebar.classList.contains('open')) {
-      if (!sidebar.contains(e.target)) {
-        sidebar.classList.remove('open');
-        document.getElementById('sbOverlay')?.classList.remove('active');
-      }
-    }
-    lastTap = now;
-  });
+  // Ditangani secara responsif di layout_main.php
 }
 
 /* ── Auto dismiss alerts ────────────────────────────────────── */

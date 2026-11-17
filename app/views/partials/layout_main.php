@@ -196,7 +196,30 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
 }
 .page-card-header h5 { font-size: 15px; font-weight: 600; color: #1a2035; margin: 0; }
 
-/* ── Mobile ─────────────────────────────────────────── */
+/* ── Mobile & Fast Touch ─────────────────────────────── */
+*, html, body, a, button, .sb-link, .sb-toggle, .topbar-toggle {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.sb-link, .sb-toggle, .btn {
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background .12s, transform .08s;
+}
+.sb-link:active, .sb-toggle:active {
+  background: rgba(255, 255, 255, 0.25) !important;
+  transform: scale(0.97);
+}
+#topProgressBar {
+  position: fixed;
+  top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, #1a56db, #22c55e);
+  z-index: 99999;
+  width: 0%;
+  opacity: 0;
+  transition: width 0.25s ease, opacity 0.2s ease;
+  pointer-events: none;
+}
 @media (max-width: 768px) {
   #sidebar { transform: translateX(-100%); }
   #sidebar.open { transform: translateX(0); }
@@ -216,6 +239,9 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
 <?php if (!empty($extraCss)) echo $extraCss; ?>
 </head>
 <body>
+
+<!-- Top loading progress bar -->
+<div id="topProgressBar"></div>
 
 <!-- Sidebar overlay (mobile) -->
 <div class="sb-overlay" id="sbOverlay"></div>
@@ -366,23 +392,64 @@ const sidebar   = document.getElementById('sidebar');
 const overlay   = document.getElementById('sbOverlay');
 const sbToggle  = document.getElementById('sbToggle');
 
-sbToggle.addEventListener('click', () => {
+sbToggle?.addEventListener('click', () => {
   sidebar.classList.toggle('open');
   overlay.classList.toggle('active');
 });
-overlay.addEventListener('click', () => {
+overlay?.addEventListener('click', () => {
   sidebar.classList.remove('open');
   overlay.classList.remove('active');
 });
 
-// ── Submenu toggle ────────────────────────────────────
+// ── Submenu toggle (Instan tanpa delay) ───────────────
 document.querySelectorAll('.sb-toggle').forEach(btn => {
   btn.addEventListener('click', e => {
     e.preventDefault();
     const target = document.getElementById(btn.dataset.target);
     btn.classList.toggle('open');
-    target.classList.toggle('open');
+    target?.classList.toggle('open');
   });
+});
+
+// ── Top Progress Bar & Fast Navigation ────────────────
+function startProgress() {
+  const bar = document.getElementById('topProgressBar');
+  if (bar) {
+    bar.style.opacity = '1';
+    bar.style.width = '75%';
+  }
+}
+window.addEventListener('beforeunload', startProgress);
+
+// Prefetch & instant feedback pada setiap link
+document.querySelectorAll('a[href]').forEach(a => {
+  const href = a.getAttribute('href');
+  if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+    // Prefetch saat sentuh/hover agar load lebih cepat
+    const prefetch = () => {
+      if (!a.dataset.prefetched && href.includes(window.location.hostname)) {
+        a.dataset.prefetched = '1';
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = href;
+        document.head.appendChild(link);
+      }
+    };
+    a.addEventListener('touchstart', prefetch, { passive: true });
+    a.addEventListener('mouseenter', prefetch);
+
+    // Respon klik langsung
+    a.addEventListener('click', e => {
+      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && a.target !== '_blank') {
+        startProgress();
+        // Tutup sidebar jika di mobile setelah klik menu
+        if (window.innerWidth <= 768 && a.classList.contains('sb-link') && !a.classList.contains('sb-toggle')) {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+        }
+      }
+    });
+  }
 });
 
 // ── Notifikasi unread count ───────────────────────────
