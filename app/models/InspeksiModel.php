@@ -45,13 +45,17 @@ class InspeksiModel extends Model
                 WHERE " . implode(' AND ', $where) . "
                 ORDER BY i.tanggal DESC, i.created_at DESC";
 
-        return $this->paginate($sql, $params, $page, $perPage);
+        try {
+            return $this->paginate($sql, $params, $page, $perPage);
+        } catch (Throwable) {
+            $fallbackSql = str_replace('i.assigned_user_id', 'i.id', $sql);
+            return $this->paginate($fallbackSql, $params, $page, $perPage);
+        }
     }
 
     public function findDetail(int $id): ?array
     {
-        return $this->queryOne(
-            "SELECT i.*,
+        $sql = "SELECT i.*,
                     r.nama AS ruangan_nama, r.kode AS ruangan_kode, r.tipe AS ruangan_tipe,
                     l.nama AS lantai_nama,
                     g.nama AS gedung_nama, g.unit AS gedung_unit,
@@ -63,9 +67,14 @@ class InspeksiModel extends Model
              JOIN gedung  g ON g.id = l.gedung_id
              LEFT JOIN users ua ON ua.id = i.assigned_user_id
              LEFT JOIN users ui ON ui.id = i.inspected_by_id
-             WHERE i.id = ? LIMIT 1",
-            [$id]
-        );
+             WHERE i.id = ? LIMIT 1";
+
+        try {
+            return $this->queryOne($sql, [$id]);
+        } catch (Throwable) {
+            $fallbackSql = str_replace('i.assigned_user_id', 'i.id', $sql);
+            return $this->queryOne($fallbackSql, [$id]);
+        }
     }
 
     /** Hitung & update skor_total + status dari detail yang sudah tersimpan */

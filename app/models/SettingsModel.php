@@ -42,7 +42,7 @@ class SettingsModel extends Model
     public function getByGroup(string $group): array
     {
         return $this->query(
-            "SELECT * FROM settings WHERE group_name=? ORDER BY id", [$group]
+            "SELECT * FROM settings WHERE group_name=? ORDER BY key_name", [$group]
         );
     }
 }

@@ -159,38 +159,6 @@ const Skeleton = {
   }
 };
 
-/* ── Dark Mode Toggle ───────────────────────────────────────── */
-const DarkMode = {
-  key: 'inspeksi_dark_mode',
-
-  init() {
-    if (localStorage.getItem(this.key) === '1') {
-      document.body.classList.add('dark-mode');
-    }
-    // Render toggle button
-    const btn = document.getElementById('darkModeToggle');
-    if (btn) {
-      btn.addEventListener('click', () => this.toggle());
-      this.updateIcon(btn);
-    }
-  },
-
-  toggle() {
-    const isDark = document.body.classList.toggle('dark-mode');
-    localStorage.setItem(this.key, isDark ? '1' : '0');
-    const btn = document.getElementById('darkModeToggle');
-    if (btn) this.updateIcon(btn);
-  },
-
-  updateIcon(btn) {
-    const isDark = document.body.classList.contains('dark-mode');
-    btn.innerHTML = isDark
-      ? '<i class="bi bi-sun"></i>'
-      : '<i class="bi bi-moon"></i>';
-    btn.title = isDark ? 'Mode Terang' : 'Mode Gelap';
-  }
-};
-
 /* ── Form Loading State ─────────────────────────────────────── */
 function formLoadingState(formEl, loading = true, msg = 'Menyimpan...') {
   const btn = formEl.querySelector('[type="submit"]');
@@ -290,7 +258,8 @@ function formatNumber(n, decimals = 0) {
 
 /* ── Init on DOMContentLoaded ───────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  DarkMode.init();
+  localStorage.removeItem('inspeksi_dark_mode');
+  document.body.classList.remove('dark-mode');
   initPageAnimations();
   initMobileSidebar();
   initAutoDismissAlerts();
@@ -316,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
 window.LoadingUI   = LoadingUI;
 window.Toast       = Toast;
 window.Skeleton    = Skeleton;
-window.DarkMode    = DarkMode;
 window.confirmDelete = confirmDelete;
 window.fetchJSON   = fetchJSON;
 window.escH        = escH;

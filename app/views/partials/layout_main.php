@@ -331,11 +331,6 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
   </button>
   <span class="topbar-title"><?= Helper::e($pageTitle ?? 'Dashboard') ?></span>
 
-  <!-- Dark mode toggle -->
-  <button id="darkModeToggle" class="topbar-notif border-0 bg-transparent" title="Mode Gelap">
-    <i class="bi bi-moon"></i>
-  </button>
-
   <!-- Notifikasi -->
   <a href="<?= Helper::baseUrl('notifikasi') ?>" class="topbar-notif" id="notifBtn" title="Notifikasi">
     <i class="bi bi-bell" style="font-size:18px"></i>

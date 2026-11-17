@@ -42,7 +42,16 @@ class LaporanModel extends Model
                 WHERE " . implode(' AND ', $where) . "
                 ORDER BY i.tanggal DESC, i.id DESC";
 
-        return $this->query($sql, $params);
+        try {
+            return $this->query($sql, $params);
+        } catch (Throwable) {
+            $fallbackSql = str_replace(
+                ['i.catatan_umum', 'i.assigned_user_id'],
+                ['COALESCE(i.catatan, \'\') AS catatan_umum', 'i.id'],
+                $sql
+            );
+            return $this->query($fallbackSql, $params);
+        }
     }
 
     /**

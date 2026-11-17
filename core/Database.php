@@ -2,9 +2,27 @@
 class Database
 {
     private static ?PDO $instance = null;
+    private static bool $schemaChecked = false;
 
     private function __construct() {}
     private function __clone() {}
+
+    private static function ensureSchema(PDO $pdo, string $driver): void
+    {
+        if (self::$schemaChecked) return;
+        self::$schemaChecked = true;
+
+        if ($driver === 'pgsql') {
+            try {
+                $pdo->exec("
+                    ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS assigned_user_id INT;
+                    ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS catatan_umum TEXT;
+                    ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS foto_ruangan VARCHAR(255);
+                    ALTER TABLE notifications ADD COLUMN IF NOT EXISTS inspeksi_id INT;
+                ");
+            } catch (Throwable) {}
+        }
+    }
 
     public static function getInstance(): PDO
     {
@@ -26,6 +44,7 @@ class Database
                     : "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
 
                 self::$instance = new PDO($dsn, $user, $pass, $cfg['options']);
+                self::ensureSchema(self::$instance, $driver);
                 return self::$instance;
             }
 
@@ -35,6 +54,7 @@ class Database
                 $port = $cfg['port'] ?? 5432;
                 $dsn = "pgsql:host={$cfg['host']};port={$port};dbname={$cfg['dbname']};sslmode=require";
                 self::$instance = new PDO($dsn, $cfg['user'], $cfg['pass'], $cfg['options']);
+                self::ensureSchema(self::$instance, $driver);
                 return self::$instance;
             }
 

@@ -15,18 +15,32 @@ class NotifikasiModel extends Model
     public function forUser(int $userId, int $limit = 30): array
     {
         $limit = max(1, (int)$limit);
-        return $this->query(
-            "SELECT n.*, i.tanggal AS inspeksi_tanggal,
-                    r.nama AS ruangan_nama, g.nama AS gedung_nama
-             FROM notifications n
-             LEFT JOIN inspeksi  i ON i.id = n.inspeksi_id
-             LEFT JOIN ruangan   r ON r.id = i.ruangan_id
-             LEFT JOIN lantai    l ON l.id = r.lantai_id
-             LEFT JOIN gedung    g ON g.id = l.gedung_id
-             WHERE (n.user_id=? OR n.user_id IS NULL)
-             ORDER BY n.created_at DESC LIMIT {$limit}",
-            [$userId]
-        );
+        try {
+            return $this->query(
+                "SELECT n.*, i.tanggal AS inspeksi_tanggal,
+                        r.nama AS ruangan_nama, g.nama AS gedung_nama
+                 FROM notifications n
+                 LEFT JOIN inspeksi  i ON i.id = n.inspeksi_id
+                 LEFT JOIN ruangan   r ON r.id = i.ruangan_id
+                 LEFT JOIN lantai    l ON l.id = r.lantai_id
+                 LEFT JOIN gedung    g ON g.id = l.gedung_id
+                 WHERE (n.user_id=? OR n.user_id IS NULL)
+                 ORDER BY n.created_at DESC LIMIT {$limit}",
+                [$userId]
+            );
+        } catch (Throwable) {
+            $rows = $this->query(
+                "SELECT * FROM notifications WHERE (user_id=? OR user_id IS NULL) ORDER BY created_at DESC LIMIT {$limit}",
+                [$userId]
+            );
+            foreach ($rows as &$r) {
+                $r['inspeksi_tanggal'] = null;
+                $r['ruangan_nama'] = null;
+                $r['gedung_nama'] = null;
+                $r['inspeksi_id'] = $r['inspeksi_id'] ?? null;
+            }
+            return $rows;
+        }
     }
 
     public function markRead(int $id, int $userId): void

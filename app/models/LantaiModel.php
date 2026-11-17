@@ -7,11 +7,9 @@ class LantaiModel extends Model
     {
         return $this->query(
             "SELECT l.*, g.nama AS gedung_nama, g.unit AS gedung_unit,
-                    COUNT(r.id) AS total_ruangan
+                    (SELECT COUNT(*) FROM ruangan r WHERE r.lantai_id = l.id AND r.is_active = 1) AS total_ruangan
              FROM lantai l
              JOIN gedung g ON g.id = l.gedung_id
-             LEFT JOIN ruangan r ON r.lantai_id = l.id AND r.is_active = 1
-             GROUP BY l.id
              ORDER BY g.unit, g.nama, l.urutan"
         );
     }
