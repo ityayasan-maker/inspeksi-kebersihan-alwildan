@@ -14,7 +14,9 @@ class SupabaseStorage
         $cfg = require ROOT_PATH . '/config/app.php';
         $sb  = $cfg['supabase'] ?? [];
 
-        $this->url    = rtrim($sb['url'] ?? '', '/');
+        $rawUrl       = rtrim($sb['url'] ?? '', '/');
+        // Bersihkan jika user menyertakan /rest/v1 di belakang URL
+        $this->url    = preg_replace('#/rest/v1/?$#', '', $rawUrl);
         // Prioritaskan secret_key untuk operasi server-side storage, fallback ke publishable_key
         $this->key    = $sb['secret_key'] ?: ($sb['publishable_key'] ?: '');
         $this->bucket = $sb['bucket'] ?? 'inspeksi';
