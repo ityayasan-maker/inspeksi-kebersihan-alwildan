@@ -107,9 +107,9 @@ class InspeksiModel extends Model
         return $this->queryOne(
             "SELECT
                COUNT(*) AS total,
-               SUM(status='bersih') AS bersih,
-               SUM(status='kurang_bersih') AS kurang_bersih,
-               SUM(status='kotor') AS kotor,
+               SUM(CASE WHEN status='bersih' THEN 1 ELSE 0 END) AS bersih,
+               SUM(CASE WHEN status='kurang_bersih' THEN 1 ELSE 0 END) AS kurang_bersih,
+               SUM(CASE WHEN status='kotor' THEN 1 ELSE 0 END) AS kotor,
                ROUND(AVG(skor_total),1) AS rata_skor
              FROM inspeksi WHERE is_draft=0"
         );

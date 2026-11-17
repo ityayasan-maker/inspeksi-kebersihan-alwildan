@@ -77,15 +77,21 @@ class InspeksiController extends Controller
         // inspected_by: selalu user yang sedang login (penilai)
         $inspectedById = Session::get('user_id');
 
+        // Buat nomor inspeksi unik
+        $nomorInspeksi = 'INSP-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
+
         // Buat header inspeksi
         $inspeksiId = $this->model->insert([
-            'ruangan_id'       => $ruanganId,
-            'assigned_user_id' => $assignedId,
-            'inspected_by_id'  => $inspectedById,
-            'tanggal'          => $tanggal,
-            'waktu_mulai'      => $waktuMulai,
-            'catatan_umum'     => $catatanUmum,
-            'is_draft'         => $isDraft,
+            'nomor_inspeksi'      => $nomorInspeksi,
+            'ruangan_id'          => $ruanganId,
+            'assigned_user_id'    => $assignedId,
+            'assigned_petugas_id' => $assignedId,
+            'inspected_by_id'     => $inspectedById,
+            'tanggal'             => $tanggal,
+            'waktu_mulai'         => $waktuMulai,
+            'catatan'             => $catatanUmum,
+            'catatan_umum'        => $catatanUmum,
+            'is_draft'            => $isDraft,
         ]);
 
         // Simpan foto kondisi ruangan utama jika ada

@@ -34,31 +34,85 @@ abstract class Model
         return $row ?: null;
     }
 
+    private static array $tableColumnsCache = [];
+
+    protected function filterColumns(array $data): array
+    {
+        if (empty($data)) return [];
+
+        if (!isset(self::$tableColumnsCache[$this->table])) {
+            try {
+                $isPg = ($this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql');
+                if ($isPg) {
+                    $stmt = $this->db->prepare(
+                        "SELECT column_name FROM information_schema.columns WHERE table_name = ?"
+                    );
+                    $stmt->execute([$this->table]);
+                    $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                } else {
+                    $stmt = $this->db->query("DESCRIBE `{$this->table}`");
+                    $cols = $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+                }
+                self::$tableColumnsCache[$this->table] = $cols ?: [];
+            } catch (Throwable) {
+                self::$tableColumnsCache[$this->table] = [];
+            }
+        }
+
+        $validCols = self::$tableColumnsCache[$this->table];
+        if (!empty($validCols)) {
+            $filtered = [];
+            foreach ($data as $k => $v) {
+                if (in_array($k, $validCols, true)) {
+                    $filtered[$k] = $v;
+                }
+            }
+            return $filtered ?: $data;
+        }
+
+        return $data;
+    }
+
     public function insert(array $data): int
     {
+        $data = $this->filterColumns($data);
+        if (empty($data)) return 0;
+
         $cols = implode(', ', array_keys($data));
         $phs  = implode(', ', array_fill(0, count($data), '?'));
+        $isPg = ($this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql');
+
+        if ($isPg) {
+            $stmt = $this->db->prepare(
+                "INSERT INTO {$this->table} ({$cols}) VALUES ({$phs}) RETURNING {$this->pk}"
+            );
+            $stmt->execute(array_values($data));
+            return (int) $stmt->fetchColumn();
+        }
+
         $stmt = $this->db->prepare(
-            "INSERT INTO {$this->table} ({$cols}) VALUES ({$phs})"
+            "INSERT INTO `{$this->table}` ({$cols}) VALUES ({$phs})"
         );
         $stmt->execute(array_values($data));
         
         try {
             return (int) $this->db->lastInsertId();
         } catch (Throwable) {
-            try {
-                return (int) $this->db->lastInsertId("{$this->table}_{$this->pk}_seq");
-            } catch (Throwable) {
-                return 0;
-            }
+            return 0;
         }
     }
 
     public function update(int|string $id, array $data): bool
     {
-        $set  = implode(', ', array_map(fn($k) => "{$k} = ?", array_keys($data)));
+        $data = $this->filterColumns($data);
+        if (empty($data)) return false;
+
+        $isPg  = ($this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql');
+        $quote = $isPg ? '' : '`';
+
+        $set  = implode(', ', array_map(fn($k) => "{$quote}{$k}{$quote} = ?", array_keys($data)));
         $stmt = $this->db->prepare(
-            "UPDATE {$this->table} SET {$set} WHERE {$this->pk} = ?"
+            "UPDATE {$quote}{$this->table}{$quote} SET {$set} WHERE {$quote}{$this->pk}{$quote} = ?"
         );
         $vals = array_values($data);
         $vals[] = $id;

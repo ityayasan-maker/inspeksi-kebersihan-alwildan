@@ -15,6 +15,9 @@ class Database
         if ($driver === 'pgsql') {
             try {
                 $pdo->exec("
+                    ALTER TABLE inspeksi ALTER COLUMN nomor_inspeksi DROP NOT NULL;
+                    ALTER TABLE inspeksi ALTER COLUMN status DROP NOT NULL;
+                    ALTER TABLE inspeksi ALTER COLUMN skor_total DROP NOT NULL;
                     ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS assigned_user_id INT;
                     ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS catatan_umum TEXT;
                     ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS foto_ruangan VARCHAR(255);
