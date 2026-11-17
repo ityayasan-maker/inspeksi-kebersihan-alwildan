@@ -53,6 +53,11 @@ class Uploader
      */
     public function delete(string $relativePath): bool
     {
+        $supabase = new SupabaseStorage();
+        if ($supabase->isConfigured()) {
+            $supabase->delete($relativePath);
+        }
+
         $full = $this->baseDir . '/' . ltrim($relativePath, '/');
         if (file_exists($full)) {
             return unlink($full);
@@ -113,6 +118,23 @@ class Uploader
         $processed = $this->processImage($file['tmp_name'], $mimeType, $destPath);
         if (!$processed) {
             return $this->err('Gagal memproses gambar.');
+        }
+
+        // 8. Integrasi Supabase Storage jika dikonfigurasi
+        $supabase = new SupabaseStorage();
+        if ($supabase->isConfigured()) {
+            $subPath = str_replace(rtrim($this->baseDir, '/\\'), '', $targetDir);
+            $storagePath = trim(str_replace('\\', '/', $subPath), '/') . '/' . $filename;
+            $sbResult = $supabase->upload($storagePath, $destPath, 'image/jpeg');
+            if ($sbResult['success']) {
+                return [
+                    'success'  => true,
+                    'filename' => $storagePath,
+                    'url'      => $sbResult['url'],
+                    'error'    => '',
+                ];
+            }
+            return $this->err('Supabase Upload: ' . $sbResult['error']);
         }
 
         return ['success' => true, 'filename' => $filename, 'error' => ''];

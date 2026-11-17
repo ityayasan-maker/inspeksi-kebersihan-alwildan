@@ -160,6 +160,17 @@ class Helper
 
     public static function uploadUrl(string $path): string
     {
+        if (empty($path)) return '';
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        $cfg = require ROOT_PATH . '/config/app.php';
+        if (!empty($cfg['supabase']['url'])) {
+            $bucket = $cfg['supabase']['bucket'] ?? 'inspeksi';
+            return rtrim($cfg['supabase']['url'], '/') . "/storage/v1/object/public/{$bucket}/" . ltrim($path, '/');
+        }
+
         return self::baseUrl('public/uploads/' . ltrim($path, '/'));
     }
 

@@ -13,6 +13,14 @@ return [
     'debug'       => (bool)(getenv('APP_DEBUG') ?: true),
     'timezone'    => 'Asia/Jakarta',
 
+    // Supabase Storage Integration
+    'supabase' => [
+        'url'             => getenv('SUPABASE_URL') ?: '',
+        'publishable_key' => getenv('SUPABASE_PUBLISHABLE_KEY') ?: 'sb_publishable_o_rXRF1Qd90XL1SRjas_nA_tAb5S-n4',
+        'secret_key'      => getenv('SUPABASE_SECRET_KEY') ?: 'sb_secret_9zmv6Qh893VLAhuXevZ31w_6pBhxfco',
+        'bucket'          => getenv('SUPABASE_BUCKET') ?: 'inspeksi',
+    ],
+
     // Scoring (sinkron dengan standar kebersihan)
     'score' => [
         'bersih'        => 100,
