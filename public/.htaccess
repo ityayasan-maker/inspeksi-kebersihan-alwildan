@@ -1,0 +1,15 @@
+Options -Indexes
+RewriteEngine On
+
+# Izinkan akses langsung ke file & folder nyata
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Semua request → index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# Blokir akses ke file sensitif
+<FilesMatch "\.(sql|log|env|ini|sh|bat)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
