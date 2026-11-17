@@ -33,8 +33,9 @@ class AuthController extends Controller
             $this->redirect('login');
         }
 
-        $email    = trim($this->post('email', ''));
-        $password = $this->post('password', '');
+        $rawEmail = $this->post('email', '');
+        $email    = strtolower(trim(preg_replace('/[\s\x{00A0}\x{200B}\x{FEFF}]+/u', '', (string)$rawEmail)));
+        $password = trim((string)$this->post('password', ''));
 
         // Validasi input
         if (!$email || !$password) {

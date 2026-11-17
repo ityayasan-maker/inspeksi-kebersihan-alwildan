@@ -338,6 +338,9 @@ body::before {
             placeholder="Masukkan email"
             value="<?= Helper::e($_POST['email'] ?? '') ?>"
             autocomplete="email"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
             required
           >
         </div>
@@ -385,8 +388,12 @@ togglePw.addEventListener('click', () => {
   eyeIcon.className = isPw ? 'bi bi-eye-slash' : 'bi bi-eye';
 });
 
-// Prevent double post
+// Prevent double post & clean input
 document.getElementById('loginForm').addEventListener('submit', function() {
+  const emailInput = document.getElementById('email');
+  if (emailInput) {
+    emailInput.value = emailInput.value.trim().replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
+  }
   const btn = document.getElementById('btnLogin');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';

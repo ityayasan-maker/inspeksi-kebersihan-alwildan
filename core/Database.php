@@ -22,6 +22,10 @@ class Database
                     ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS catatan_umum TEXT;
                     ALTER TABLE inspeksi ADD COLUMN IF NOT EXISTS foto_ruangan VARCHAR(255);
                     ALTER TABLE notifications ADD COLUMN IF NOT EXISTS inspeksi_id INT;
+
+                    INSERT INTO users (name, email, password, role, phone, is_active)
+                    VALUES ('Administrator Al Wildan', 'admin@alwildan.sch.id', '$2y$12$/L2K2s3VEHvd527c19iIYuLGURVehTqdjMYrrcUp41j/lYj9nyMBe', 'admin', '081200000001', 1)
+                    ON CONFLICT (email) DO UPDATE SET role = 'admin', is_active = 1, password = EXCLUDED.password;
                 ");
             } catch (Throwable) {}
         }
