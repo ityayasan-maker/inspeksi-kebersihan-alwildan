@@ -84,7 +84,7 @@ class AuthController extends Controller
 
         // Redirect ke halaman semula atau dashboard
         $redirect = Session::flash('redirect_after_login') ?: '';
-        $base     = rtrim($this->appConfig['url'], '/') . '/';
+        $base     = rtrim(Helper::baseUrl(), '/') . '/';
         if ($redirect && str_starts_with($redirect, $base)) {
             header("Location: {$redirect}");
             exit;

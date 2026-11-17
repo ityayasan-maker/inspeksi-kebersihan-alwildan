@@ -47,8 +47,8 @@ abstract class Controller
 
     protected function redirect(string $path): void
     {
-        $base = rtrim($this->appConfig['url'], '/');
-        header("Location: {$base}/{$path}");
+        $url = Helper::baseUrl($path);
+        header("Location: {$url}");
         exit;
     }
 

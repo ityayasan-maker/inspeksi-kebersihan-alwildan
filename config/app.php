@@ -4,12 +4,18 @@
  * Sistem Inspeksi Kebersihan Al-Wildan Islamic School 8 Kemang Bogor
  * Developer: Yayasan Ambadar
  */
+$detectedProto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+                 (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                 ? 'https' : 'http';
+$detectedHost  = $_SERVER['HTTP_HOST'] ?? 'localhost:8000';
+$detectedUrl   = "{$detectedProto}://{$detectedHost}";
+
 return [
     'name'        => 'Inspeksi Kebersihan Al-Wildan Islamic School 8 Kemang Bogor',
     'short_name'  => 'Inspeksi Al-Wildan 8',
     'institution' => 'Al-Wildan Islamic School 8 Kemang Bogor',
     'developer'   => 'Yayasan Ambadar',
-    'url'         => getenv('APP_URL') ?: 'http://localhost:8000',
+    'url'         => getenv('APP_URL') ?: $detectedUrl,
     'debug'       => (bool)(getenv('APP_DEBUG') ?: true),
     'timezone'    => 'Asia/Jakarta',
 
