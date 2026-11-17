@@ -11,9 +11,39 @@ class Database
         if (self::$instance === null) {
             $cfg = require ROOT_PATH . '/config/database.php';
 
+            // 1. Cek jika ada DATABASE_URL (seperti dari Supabase connection string / Vercel)
+            $dbUrl = getenv('DATABASE_URL') ?: (getenv('POSTGRES_URL') ?: '');
+            if ($dbUrl) {
+                $p = parse_url($dbUrl);
+                $driver = (isset($p['scheme']) && ($p['scheme'] === 'postgres' || $p['scheme'] === 'postgresql')) ? 'pgsql' : 'mysql';
+                $host = $p['host'] ?? 'localhost';
+                $port = $p['port'] ?? ($driver === 'pgsql' ? 5432 : 3306);
+                $user = $p['user'] ?? '';
+                $pass = $p['pass'] ?? '';
+                $dbname = ltrim($p['path'] ?? '', '/');
+                $dsn = ($driver === 'pgsql')
+                    ? "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require"
+                    : "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
+
+                self::$instance = new PDO($dsn, $user, $pass, $cfg['options']);
+                return self::$instance;
+            }
+
+            // 2. Cek koneksi PostgreSQL / Supabase melalui ENV terpisah
+            $driver = $cfg['driver'] ?? 'mysql';
+            if ($driver === 'pgsql' || str_contains($cfg['host'] ?? '', 'supabase')) {
+                $port = $cfg['port'] ?? 5432;
+                $dsn = "pgsql:host={$cfg['host']};port={$port};dbname={$cfg['dbname']};sslmode=require";
+                self::$instance = new PDO($dsn, $cfg['user'], $cfg['pass'], $cfg['options']);
+                return self::$instance;
+            }
+
+            // 3. Fallback MySQL standar (XAMPP / Laragon / cPanel)
             try {
                 $dsn = "mysql:host={$cfg['host']};dbname={$cfg['dbname']};charset={$cfg['charset']}";
                 self::$instance = new PDO($dsn, $cfg['user'], $cfg['pass'], $cfg['options']);
+                self::$instance->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+                self::$instance->exec("SET collation_connection = utf8mb4_unicode_ci");
             } catch (PDOException $e) {
                 // Auto-fallback untuk development lokal (XAMPP / Laragon default root tanpa password)
                 $fallbacks = [
@@ -27,6 +57,8 @@ class Database
                     try {
                         $dsn = "mysql:host={$fb['host']};dbname={$fb['dbname']};charset=utf8mb4";
                         self::$instance = new PDO($dsn, $fb['user'], $fb['pass'], $cfg['options']);
+                        self::$instance->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+                        self::$instance->exec("SET collation_connection = utf8mb4_unicode_ci");
                         $connected = true;
                         break;
                     } catch (PDOException) {
@@ -37,9 +69,6 @@ class Database
                     throw $e;
                 }
             }
-
-            self::$instance->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
-            self::$instance->exec("SET collation_connection = utf8mb4_unicode_ci");
         }
         return self::$instance;
     }

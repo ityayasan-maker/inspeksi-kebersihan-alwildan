@@ -17,7 +17,7 @@ abstract class Model
 
     public function findAll(string $orderBy = '', int $limit = 0, int $offset = 0): array
     {
-        $sql = "SELECT * FROM `{$this->table}`";
+        $sql = "SELECT * FROM {$this->table}";
         if ($orderBy) $sql .= " ORDER BY {$orderBy}";
         if ($limit)   $sql .= " LIMIT {$limit} OFFSET {$offset}";
         $stmt = $this->db->query($sql);
@@ -27,7 +27,7 @@ abstract class Model
     public function find(int|string $id): ?array
     {
         $stmt = $this->db->prepare(
-            "SELECT * FROM `{$this->table}` WHERE `{$this->pk}` = ? LIMIT 1"
+            "SELECT * FROM {$this->table} WHERE {$this->pk} = ? LIMIT 1"
         );
         $stmt->execute([$id]);
         $row = $stmt->fetch();
@@ -36,20 +36,29 @@ abstract class Model
 
     public function insert(array $data): int
     {
-        $cols = implode('`, `', array_keys($data));
+        $cols = implode(', ', array_keys($data));
         $phs  = implode(', ', array_fill(0, count($data), '?'));
         $stmt = $this->db->prepare(
-            "INSERT INTO `{$this->table}` (`{$cols}`) VALUES ({$phs})"
+            "INSERT INTO {$this->table} ({$cols}) VALUES ({$phs})"
         );
         $stmt->execute(array_values($data));
-        return (int) $this->db->lastInsertId();
+        
+        try {
+            return (int) $this->db->lastInsertId();
+        } catch (Throwable) {
+            try {
+                return (int) $this->db->lastInsertId("{$this->table}_{$this->pk}_seq");
+            } catch (Throwable) {
+                return 0;
+            }
+        }
     }
 
     public function update(int|string $id, array $data): bool
     {
-        $set  = implode(' = ?, ', array_map(fn($k) => "`{$k}`", array_keys($data))) . ' = ?';
+        $set  = implode(', ', array_map(fn($k) => "{$k} = ?", array_keys($data)));
         $stmt = $this->db->prepare(
-            "UPDATE `{$this->table}` SET {$set} WHERE `{$this->pk}` = ?"
+            "UPDATE {$this->table} SET {$set} WHERE {$this->pk} = ?"
         );
         $vals = array_values($data);
         $vals[] = $id;
@@ -59,14 +68,14 @@ abstract class Model
     public function delete(int|string $id): bool
     {
         $stmt = $this->db->prepare(
-            "DELETE FROM `{$this->table}` WHERE `{$this->pk}` = ?"
+            "DELETE FROM {$this->table} WHERE {$this->pk} = ?"
         );
         return $stmt->execute([$id]);
     }
 
     public function count(string $where = '', array $params = []): int
     {
-        $sql  = "SELECT COUNT(*) FROM `{$this->table}`";
+        $sql  = "SELECT COUNT(*) FROM {$this->table}";
         if ($where) $sql .= " WHERE {$where}";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);

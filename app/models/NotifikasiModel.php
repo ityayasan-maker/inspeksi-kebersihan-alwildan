@@ -101,10 +101,10 @@ class NotifikasiModel extends Model
 
     public function deleteOld(int $days = 90): int
     {
+        $cutoff = date('Y-m-d H:i:s', strtotime("-{$days} days"));
         $this->execute(
-            "DELETE FROM notifications WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-             AND is_read=1",
-            [$days]
+            "DELETE FROM notifications WHERE created_at < ? AND is_read=1",
+            [$cutoff]
         );
         return 0; // rowCount not exposed via base model, acceptable
     }

@@ -45,20 +45,23 @@ class ActivityLogModel extends Model
 
     public function deleteOld(int $days = 180): void
     {
+        $cutoff = date('Y-m-d H:i:s', strtotime("-{$days} days"));
         $this->execute(
-            "DELETE FROM activity_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)",
-            [$days]
+            "DELETE FROM activity_logs WHERE created_at < ?",
+            [$cutoff]
         );
     }
 
     public function statsByModule(): array
     {
+        $cutoff = date('Y-m-d H:i:s', strtotime("-30 days"));
         return $this->query(
             "SELECT module, action, COUNT(*) AS total
              FROM activity_logs
-             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+             WHERE created_at >= ?
              GROUP BY module, action
-             ORDER BY total DESC"
+             ORDER BY total DESC",
+            [$cutoff]
         );
     }
 }
