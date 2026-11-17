@@ -100,9 +100,14 @@ abstract class Controller
     /** Validasi CSRF, abort jika gagal */
     protected function verifyCsrf(): void
     {
-        $token = $this->post('_csrf') ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        $token = $this->post('_csrf') ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_COOKIE['_csrf'] ?? ''));
         if (!Session::verifyCsrf($token)) {
-            $this->jsonError('CSRF token tidak valid.', 403);
+            if ($this->isAjax()) {
+                $this->jsonError('CSRF token tidak valid.', 403);
+            } else {
+                Session::flash('error', 'Sesi kedaluwarsa. Silakan coba masuk kembali.');
+                $this->redirect('login');
+            }
         }
     }
 
@@ -111,6 +116,9 @@ abstract class Controller
     protected function requireAuth(): void
     {
         if (!Session::isLoggedIn()) {
+            if (class_exists('AuthMiddleware') && AuthMiddleware::tryAutoLoginFromCookie()) {
+                return;
+            }
             Session::flash('redirect_after_login', $_SERVER['REQUEST_URI'] ?? '');
             $this->redirect('login');
         }

@@ -7,11 +7,15 @@ class Session
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
-            ini_set('session.gc_maxlifetime', 7200);
+            $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                    || (!empty($_SERVER['HTTP_HOST']) && !str_contains($_SERVER['HTTP_HOST'], 'localhost'));
+
+            ini_set('session.gc_maxlifetime', 86400);
             session_set_cookie_params([
-                'lifetime' => 7200,
+                'lifetime' => 86400,
                 'path'     => '/',
-                'secure'   => isset($_SERVER['HTTPS']),
+                'secure'   => $isHttps,
                 'httponly' => true,
                 'samesite' => 'Lax',
             ]);
@@ -91,22 +95,67 @@ class Session
         return in_array($current, (array) $roles, true);
     }
 
-    /** CSRF token */
+    /** CSRF token — Serverless resilient (HMAC timestamp + Double Submit Cookie) */
     public static function csrfToken(): string
     {
-        if (!self::has('csrf_token')) {
-            self::set('csrf_token', bin2hex(random_bytes(32)));
+        $secret = getenv('SUPABASE_SECRET_KEY') ?: 'ALWILDAN_CSRF_KEY_2026';
+        $time   = time();
+        $token  = $time . '.' . hash_hmac('sha256', (string)$time, $secret);
+
+        self::set('csrf_token', $token);
+
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                || (!empty($_SERVER['HTTP_HOST']) && !str_contains($_SERVER['HTTP_HOST'], 'localhost'));
+
+        if (!headers_sent()) {
+            setcookie('_csrf', $token, [
+                'expires'  => time() + 86400,
+                'path'     => '/',
+                'secure'   => $isHttps,
+                'httponly' => false,
+                'samesite' => 'Lax',
+            ]);
         }
-        return self::get('csrf_token');
+
+        return $token;
     }
 
     public static function verifyCsrf(string $token): bool
     {
-        return hash_equals(self::csrfToken(), $token);
+        if (empty($token)) {
+            return false;
+        }
+
+        // 1. Verifikasi cryptographic HMAC token (stateless — tahan serverless container recycle)
+        $secret = getenv('SUPABASE_SECRET_KEY') ?: 'ALWILDAN_CSRF_KEY_2026';
+        $parts  = explode('.', $token);
+        if (count($parts) === 2 && is_numeric($parts[0])) {
+            $ts  = (int)$parts[0];
+            $sig = $parts[1];
+            // Valid dalam kurun waktu 24 jam (86400 detik)
+            if ((time() - $ts) < 86400 && hash_equals(hash_hmac('sha256', (string)$ts, $secret), $sig)) {
+                return true;
+            }
+        }
+
+        // 2. Fallback: Cocokkan dengan session
+        $sessToken = self::get('csrf_token');
+        if ($sessToken && hash_equals($sessToken, $token)) {
+            return true;
+        }
+
+        // 3. Fallback: Cocokkan dengan cookie _csrf (double submit)
+        $cookieToken = $_COOKIE['_csrf'] ?? '';
+        if ($cookieToken && hash_equals($cookieToken, $token)) {
+            return true;
+        }
+
+        return false;
     }
 
     public static function regenerateCsrf(): void
     {
-        self::set('csrf_token', bin2hex(random_bytes(32)));
+        self::delete('csrf_token');
     }
 }

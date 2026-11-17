@@ -1,9 +1,10 @@
-const CACHE_NAME = 'inspeksi-cache-v1';
+const CACHE_NAME = 'inspeksi-cache-v2';
 const PRECACHE_ASSETS = [
-  './',
   './manifest.json',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png',
+  './icons/icon-maskable-192x192.png',
+  './icons/icon-maskable-512x512.png',
   './css/app.css',
   './css/sidebar.css',
   './css/upload.css',
@@ -69,21 +70,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Network-first for navigation and HTML pages
+  // Network-first for navigation and HTML pages (always fresh to avoid stale CSRF)
   event.respondWith(
-    fetch(req)
-      .then(networkResp => {
-        if (networkResp && networkResp.status === 200) {
-          const respClone = networkResp.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, respClone));
-        }
-        return networkResp;
-      })
-      .catch(() => {
-        return caches.match(req).then(cached => {
-          if (cached) return cached;
-          return caches.match('./');
-        });
-      })
+    fetch(req).catch(() => caches.match(req))
   );
 });
