@@ -16,9 +16,12 @@
 <link rel="apple-touch-icon" href="<?= Helper::baseUrl('icons/apple-touch-icon.png') ?>">
 <link rel="icon" type="image/png" sizes="192x192" href="<?= Helper::baseUrl('icons/icon-192x192.png') ?>">
 
-<!-- Google Fonts: Poppins -->
+<!-- DNS Prefetch & Preconnect for Fast CDN loading -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://code.jquery.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- Bootstrap 5 -->
@@ -416,24 +419,10 @@ function startProgress() {
 }
 window.addEventListener('beforeunload', startProgress);
 
-// Prefetch & instant feedback pada setiap link
+// Respon klik instan & feedback cepat pada setiap link
 document.querySelectorAll('a[href]').forEach(a => {
   const href = a.getAttribute('href');
   if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-    // Prefetch saat sentuh/hover agar load lebih cepat
-    const prefetch = () => {
-      if (!a.dataset.prefetched && href.includes(window.location.hostname)) {
-        a.dataset.prefetched = '1';
-        const link = document.createElement('link');
-        link.rel = 'prefetch';
-        link.href = href;
-        document.head.appendChild(link);
-      }
-    };
-    a.addEventListener('touchstart', prefetch, { passive: true });
-    a.addEventListener('mouseenter', prefetch);
-
-    // Respon klik langsung
     a.addEventListener('click', e => {
       if (!e.ctrlKey && !e.metaKey && !e.shiftKey && a.target !== '_blank') {
         startProgress();
@@ -447,7 +436,7 @@ document.querySelectorAll('a[href]').forEach(a => {
   }
 });
 
-// ── Notifikasi unread count ───────────────────────────
+// ── Notifikasi unread count (di-load setelah halaman selesai render) ─────────────────
 function loadNotifCount() {
   fetch('<?= Helper::baseUrl('notifikasi/unread') ?>', {
     headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -463,8 +452,9 @@ function loadNotifCount() {
     }
   }).catch(() => {});
 }
-loadNotifCount();
-setInterval(loadNotifCount, 60000); // refresh tiap 1 menit
+// Jalankan setelah render awal agar tidak berebut koneksi database
+setTimeout(loadNotifCount, 3000);
+setInterval(loadNotifCount, 60000);
 
 // ── CSRF token global untuk fetch/AJAX ───────────────
 

@@ -11,25 +11,40 @@ class DashboardModel extends Model
         $date7Ago  = date('Y-m-d', strtotime('-7 days'));
         $date30Ago = date('Y-m-d', strtotime('-30 days'));
 
-        $totalInspeksi   = (int)$this->queryScalar("SELECT COUNT(*) FROM inspeksi WHERE is_draft=0") ?: 0;
-        $inspeksiHariIni = (int)$this->queryScalar("SELECT COUNT(*) FROM inspeksi WHERE tanggal=? AND is_draft=0", [$today]) ?: 0;
-        $inspeksiBulan   = (int)$this->queryScalar("SELECT COUNT(*) FROM inspeksi WHERE SUBSTRING(CAST(tanggal AS VARCHAR), 1, 7)=? AND is_draft=0", [$month]) ?: 0;
-        $rataSkor        = (float)$this->queryScalar("SELECT ROUND(AVG(skor_total),1) FROM inspeksi WHERE is_draft=0") ?: 0.0;
-        $perluTindak     = (int)$this->queryScalar("SELECT COUNT(*) FROM inspeksi WHERE status='kotor' AND is_draft=0 AND tanggal >= ?", [$date7Ago]) ?: 0;
+        $sql = "SELECT
+            COUNT(*) AS total_inspeksi,
+            COUNT(CASE WHEN tanggal = ? THEN 1 END) AS inspeksi_hari_ini,
+            COUNT(CASE WHEN SUBSTRING(CAST(tanggal AS VARCHAR), 1, 7) = ? THEN 1 END) AS inspeksi_bulan,
+            ROUND(AVG(skor_total), 1) AS rata_skor,
+            COUNT(CASE WHEN status = 'kotor' AND tanggal >= ? THEN 1 END) AS perlu_tindak,
+            COUNT(CASE WHEN status = 'bersih' THEN 1 END) AS total_bersih,
+            COUNT(CASE WHEN status = 'kurang_bersih' THEN 1 END) AS total_kurang,
+            COUNT(CASE WHEN status = 'kotor' THEN 1 END) AS total_kotor,
+            COUNT(DISTINCT CASE WHEN tanggal >= ? THEN ruangan_id END) AS ruangan_terinspeksi
+        FROM inspeksi
+        WHERE is_draft = 0";
+
+        try {
+            $row = $this->queryOne($sql, [$today, $month, $date7Ago, $date30Ago]) ?: [];
+        } catch (Throwable) {
+            $row = [];
+        }
+
+        $totalRuangan = (int)$this->queryScalar("SELECT COUNT(*) FROM ruangan WHERE is_active=1") ?: 0;
 
         return [
-            'total_inspeksi'     => $totalInspeksi,
-            'inspeksi_hari_ini'  => $inspeksiHariIni,
-            'inspeksi_bulan'     => $inspeksiBulan,
-            'inspeksi_bulan_ini' => $inspeksiBulan,
-            'rata_skor'          => $rataSkor,
-            'skor_rata_bulan'    => $rataSkor,
-            'perlu_tindak'       => $perluTindak,
-            'total_bersih'       => (int)$this->queryScalar("SELECT COUNT(*) FROM inspeksi WHERE status='bersih' AND is_draft=0") ?: 0,
-            'total_kurang'       => (int)$this->queryScalar("SELECT COUNT(*) FROM inspeksi WHERE status='kurang_bersih' AND is_draft=0") ?: 0,
-            'total_kotor'        => (int)$this->queryScalar("SELECT COUNT(*) FROM inspeksi WHERE status='kotor' AND is_draft=0") ?: 0,
-            'total_ruangan'      => (int)$this->queryScalar("SELECT COUNT(*) FROM ruangan WHERE is_active=1") ?: 0,
-            'ruangan_terInspeksi'=> (int)$this->queryScalar("SELECT COUNT(DISTINCT ruangan_id) FROM inspeksi WHERE is_draft=0 AND tanggal >= ?", [$date30Ago]) ?: 0,
+            'total_inspeksi'     => (int)($row['total_inspeksi'] ?? 0),
+            'inspeksi_hari_ini'  => (int)($row['inspeksi_hari_ini'] ?? 0),
+            'inspeksi_bulan'     => (int)($row['inspeksi_bulan'] ?? 0),
+            'inspeksi_bulan_ini' => (int)($row['inspeksi_bulan'] ?? 0),
+            'rata_skor'          => (float)($row['rata_skor'] ?? 0),
+            'skor_rata_bulan'    => (float)($row['rata_skor'] ?? 0),
+            'perlu_tindak'       => (int)($row['perlu_tindak'] ?? 0),
+            'total_bersih'       => (int)($row['total_bersih'] ?? 0),
+            'total_kurang'       => (int)($row['total_kurang'] ?? 0),
+            'total_kotor'        => (int)($row['total_kotor'] ?? 0),
+            'total_ruangan'      => $totalRuangan,
+            'ruangan_terInspeksi'=> (int)($row['ruangan_terinspeksi'] ?? 0),
         ];
     }
 

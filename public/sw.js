@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inspeksi-cache-v2';
+const CACHE_NAME = 'inspeksi-cache-v3';
 const PRECACHE_ASSETS = [
   './manifest.json',
   './icons/icon-192x192.png',

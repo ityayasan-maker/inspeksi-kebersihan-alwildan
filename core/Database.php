@@ -47,11 +47,10 @@ class Database
                 $pass = $p['pass'] ?? '';
                 $dbname = ltrim($p['path'] ?? '', '/');
                 $dsn = ($driver === 'pgsql')
-                    ? "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require"
+                    ? "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require;connect_timeout=5"
                     : "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
 
                 self::$instance = new PDO($dsn, $user, $pass, $cfg['options']);
-                self::ensureSchema(self::$instance, $driver);
                 return self::$instance;
             }
 
@@ -59,9 +58,8 @@ class Database
             $driver = $cfg['driver'] ?? 'mysql';
             if ($driver === 'pgsql' || str_contains($cfg['host'] ?? '', 'supabase')) {
                 $port = $cfg['port'] ?? 5432;
-                $dsn = "pgsql:host={$cfg['host']};port={$port};dbname={$cfg['dbname']};sslmode=require";
+                $dsn = "pgsql:host={$cfg['host']};port={$port};dbname={$cfg['dbname']};sslmode=require;connect_timeout=5";
                 self::$instance = new PDO($dsn, $cfg['user'], $cfg['pass'], $cfg['options']);
-                self::ensureSchema(self::$instance, $driver);
                 return self::$instance;
             }
 
