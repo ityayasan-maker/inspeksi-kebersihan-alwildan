@@ -65,7 +65,7 @@ tr:nth-child(even) td { background:#fafbfc; }
   <div class="rpt-header">
     <div>
       <div class="rpt-title">📋 Laporan Inspeksi Kebersihan</div>
-      <div class="rpt-sub">Al-Wildan Islamic School 8 Kemang Bogor — Yayasan Ambadar</div>
+      <div class="rpt-sub">Al-Wildan Islamic School 8 Kemang Bogor</div>
       <div class="rpt-sub" style="margin-top:4px;color:#888">
         Periode: <?= Helper::formatDate($filters['tanggal_dari'],'d M Y') ?>
         s/d <?= Helper::formatDate($filters['tanggal_sampai'],'d M Y') ?>

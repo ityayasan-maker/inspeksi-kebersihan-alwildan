@@ -28,6 +28,44 @@ class SupabaseStorage
     }
 
     /**
+     * Pastikan bucket ada dan bersifat public
+     */
+    public function ensureBucket(): bool
+    {
+        if (!$this->isConfigured()) {
+            return false;
+        }
+
+        $endpoint = "{$this->url}/storage/v1/bucket";
+        $payload  = json_encode([
+            'id'                  => $this->bucket,
+            'name'                => $this->bucket,
+            'public'              => true,
+            'file_size_limit'     => 10485760, // 10MB
+            'allowed_mime_types'  => ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        ]);
+
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => [
+                "apikey: {$this->key}",
+                "Authorization: Bearer {$this->key}",
+                "Content-Type: application/json"
+            ],
+            CURLOPT_TIMEOUT        => 10,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        return ($httpCode >= 200 && $httpCode < 300) || $httpCode === 409 || $httpCode === 400;
+    }
+
+    /**
      * Upload file ke Supabase Storage via REST API
      * @param string $storagePath Path di dalam bucket (cth: "inspeksi/12/foto_123.jpg")
      * @param string $localFilePath Path fisik file sementara di server
@@ -41,7 +79,7 @@ class SupabaseStorage
         }
 
         $endpoint = "{$this->url}/storage/v1/object/{$this->bucket}/" . ltrim($storagePath, '/');
-        $fileData = file_get_contents($localFilePath);
+        $fileData = @file_get_contents($localFilePath);
 
         if ($fileData === false) {
             return ['success' => false, 'error' => 'Gagal membaca file lokal untuk upload.'];
@@ -65,6 +103,28 @@ class SupabaseStorage
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlErr  = curl_error($ch);
         curl_close($ch);
+
+        // Jika bucket belum ada, auto-create lalu retry sekali
+        if ($httpCode === 404 || $httpCode === 400) {
+            $this->ensureBucket();
+            $ch = curl_init($endpoint);
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $fileData,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER     => [
+                    "apikey: {$this->key}",
+                    "Authorization: Bearer {$this->key}",
+                    "Content-Type: {$mimeType}",
+                    "x-upsert: true"
+                ],
+                CURLOPT_TIMEOUT        => 30,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr  = curl_error($ch);
+            curl_close($ch);
+        }
 
         if ($curlErr) {
             return ['success' => false, 'error' => "cURL Error: {$curlErr}"];

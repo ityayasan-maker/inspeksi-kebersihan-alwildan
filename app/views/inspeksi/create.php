@@ -602,18 +602,53 @@ function onKondisiSelect(itemId, kondisi) {
   hitungProgress();
 }
 
+function compressImageFile(file, maxDim, quality, cb) {
+  if (!file || !file.type.startsWith('image/')) { cb(file, null); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(function(blob) {
+        if (!blob) { cb(file, e.target.result); return; }
+        try {
+          const compFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() });
+          cb(compFile, canvas.toDataURL('image/jpeg', quality));
+        } catch(err) {
+          cb(file, e.target.result);
+        }
+      }, 'image/jpeg', quality);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function onItemFotoCaptured(input, itemId) {
   const file = input.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    document.getElementById(`img_item_${itemId}`).src = e.target.result;
+  compressImageFile(file, 1280, 0.8, function(compFile, dataUrl) {
+    if (window.DataTransfer && compFile !== file) {
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(compFile);
+        input.files = dt.files;
+      } catch(e) {}
+    }
+    document.getElementById(`img_item_${itemId}`).src = dataUrl || URL.createObjectURL(compFile);
     document.getElementById(`preview_item_${itemId}`).classList.remove('d-none');
     document.getElementById(`preview_item_${itemId}`).classList.add('d-flex');
     document.getElementById(`label_cam_${itemId}`).textContent = 'Ganti Foto';
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function hapusFotoItem(itemId) {
@@ -630,14 +665,20 @@ function hapusFotoItem(itemId) {
 function previewFotoRuangan(input) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    document.getElementById('imgFotoRuangan').src = e.target.result;
+
+  compressImageFile(file, 1280, 0.82, function(compFile, dataUrl) {
+    if (window.DataTransfer && compFile !== file) {
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(compFile);
+        input.files = dt.files;
+      } catch(e) {}
+    }
+    document.getElementById('imgFotoRuangan').src = dataUrl || URL.createObjectURL(compFile);
     document.getElementById('fotoRuanganPrompt').classList.add('d-none');
     document.getElementById('fotoRuanganPreview').classList.remove('d-none');
     document.getElementById('fotoRuanganPreview').classList.add('d-flex');
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function hapusFotoRuangan() {

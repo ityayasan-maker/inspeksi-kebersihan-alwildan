@@ -469,7 +469,8 @@ setInterval(loadNotifCount, 60000); // refresh tiap 1 menit
 // ── CSRF token global untuk fetch/AJAX ───────────────
 
 // Base URL untuk JS fetch
-window.BASE_URL = '<?= rtrim($this->appConfig["url"] ?? Helper::baseUrl(), "/") ?>';
+window.BASE_URL = '<?= rtrim(Helper::baseUrl(), "/") ?>';
+var BASE_URL = window.BASE_URL;
 window.CSRF_TOKEN = '<?= Session::csrfToken() ?>';
 
 // ── SweetAlert delete confirm helper ─────────────────

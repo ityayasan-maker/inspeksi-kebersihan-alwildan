@@ -161,13 +161,18 @@ class Helper
             return $path;
         }
 
+        $cleanPath = ltrim(str_replace('\\', '/', $path), '/');
+        // Hilangkan kemungkinan duplikasi 'inspeksi/X/inspeksi/X/'
+        $cleanPath = preg_replace('#^(inspeksi/\d+/)+inspeksi/#', 'inspeksi/', $cleanPath);
+
         $cfg = require ROOT_PATH . '/config/app.php';
-        if (!empty($cfg['supabase']['url'])) {
+        $sbUrl = $cfg['supabase']['url'] ?? '';
+        if (!empty($sbUrl)) {
             $bucket = $cfg['supabase']['bucket'] ?? 'inspeksi';
-            return rtrim($cfg['supabase']['url'], '/') . "/storage/v1/object/public/{$bucket}/" . ltrim($path, '/');
+            return rtrim($sbUrl, '/') . "/storage/v1/object/public/{$bucket}/" . $cleanPath;
         }
 
-        return self::baseUrl('public/uploads/' . ltrim($path, '/'));
+        return self::baseUrl('public/uploads/' . $cleanPath);
     }
 
     public static function generateFilename(string $ext): string

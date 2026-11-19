@@ -152,17 +152,21 @@ $statusList = [''=>'Semua Status','bersih'=>'Bersih','kurang_bersih'=>'Kurang Be
         <tr>
           <th>No</th><th>Tanggal</th><th>Ruangan</th><th>Gedung</th><th>Unit</th>
           <th>Petugas PJ</th><th>Inspektor</th>
-          <th class="text-center">Skor</th><th class="text-center">Status</th><th>Aksi</th>
+          <th class="text-center">Skor</th><th class="text-center">Status</th>
+          <th class="text-center">Foto</th><th>Aksi</th>
         </tr>
       </thead>
       <tbody>
       <?php if (empty($rows)): ?>
-        <tr><td colspan="10" class="text-center text-muted py-4">
+        <tr><td colspan="11" class="text-center text-muted py-4">
           Tidak ada data untuk filter yang dipilih.
         </td></tr>
       <?php endif; ?>
       <?php $no=1; foreach ($rows as $r):
         $sc = Helper::skorBadgeClass((float)($r['skor_total']??0));
+        $hasRuangan = !empty($r['foto_ruangan']);
+        $fotoItemCount = (int)($r['total_foto_item'] ?? 0);
+        $totalFoto = ($hasRuangan ? 1 : 0) + $fotoItemCount;
       ?>
         <tr>
           <td class="text-muted small"><?= $no++ ?></td>
@@ -179,15 +183,32 @@ $statusList = [''=>'Semua Status','bersih'=>'Bersih','kurang_bersih'=>'Kurang Be
             <span class="fw-bold text-<?= $sc ?>"><?= $r['skor_total'] !== null ? number_format((float)$r['skor_total'],1) : '—' ?></span>
           </td>
           <td class="text-center"><?= Helper::statusBadge($r['status'] ?? '') ?></td>
+          <td class="text-center">
+            <?php if ($totalFoto > 0): ?>
+              <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 py-1 px-2 rounded-2"
+                      onclick="loadGallery(<?= $r['id'] ?>)" title="Lihat <?= $totalFoto ?> Foto Dokumentasi">
+                <i class="bi bi-camera-fill"></i>
+                <span style="font-size:11px"><?= $totalFoto ?> Foto</span>
+              </button>
+            <?php else: ?>
+              <span class="text-muted small" style="font-size:11px">—</span>
+            <?php endif; ?>
+          </td>
           <td>
-            <a href="<?= Helper::baseUrl("inspeksi/detail/{$r['id']}") ?>"
-               class="btn btn-sm btn-outline-primary me-1" title="Detail">
-              <i class="bi bi-eye"></i>
-            </a>
-            <a href="<?= Helper::baseUrl("laporan/print?id={$r['id']}") ?>"
-               class="btn btn-sm btn-outline-secondary" title="Cetak" target="_blank">
-              <i class="bi bi-printer"></i>
-            </a>
+            <div class="d-flex gap-1">
+              <a href="<?= Helper::baseUrl("inspeksi/detail/{$r['id']}") ?>"
+                 class="btn btn-sm btn-outline-primary" title="Detail Inspeksi">
+                <i class="bi bi-eye"></i>
+              </a>
+              <button type="button" class="btn btn-sm btn-outline-info" title="Galeri Foto"
+                      onclick="loadGallery(<?= $r['id'] ?>)">
+                <i class="bi bi-images"></i>
+              </button>
+              <a href="<?= Helper::baseUrl("laporan/print?id={$r['id']}") ?>"
+                 class="btn btn-sm btn-outline-secondary" title="Cetak / PDF" target="_blank">
+                <i class="bi bi-printer"></i>
+              </a>
+            </div>
           </td>
         </tr>
       <?php endforeach; ?>

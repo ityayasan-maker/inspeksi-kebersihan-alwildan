@@ -144,6 +144,17 @@ tr:nth-child(even) td { background:#fafbfc; }
     </div>
   </div>
 
+  <!-- Dokumentasi Foto Ruangan -->
+  <?php if (!empty($inspeksi['foto_ruangan'])): ?>
+  <div style="margin-bottom:16px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; display:flex; align-items:center; gap:16px;">
+    <img src="<?= Helper::uploadUrl("inspeksi/{$inspeksi['id']}/{$inspeksi['foto_ruangan']}") ?>" alt="Foto Ruangan" style="width:130px; height:90px; object-fit:cover; border-radius:6px; border:1px solid #cbd5e1;">
+    <div>
+      <div style="font-weight:700; font-size:12px; color:#1a5c38; margin-bottom:3px;">📷 Foto Dokumentasi Kondisi Ruangan</div>
+      <div style="font-size:11px; color:#64748b;">Dokumentasi visual kondisi umum ruangan saat inspeksi dimulai.</div>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <!-- Ringkasan skor -->
   <?php
   $b = $k = $d = 0;

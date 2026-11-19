@@ -135,24 +135,43 @@ class UploadController extends Controller
     /* ── GET /upload/gallery/:id (AJAX) ──────────────────── */
     public function gallery(string $inspeksiId): void
     {
+        $id = (int)$inspeksiId;
+        $photos = [];
+
+        // 1. Ambil foto ruangan utama jika ada
+        $inspeksi = (new InspeksiModel())->find($id);
+        if ($inspeksi && !empty($inspeksi['foto_ruangan'])) {
+            $photos[] = [
+                'id'         => 0,
+                'standar_id' => 0,
+                'aspek'      => 'Dokumentasi Kondisi Ruangan',
+                'kondisi'    => $inspeksi['status'] ?? 'bersih',
+                'filename'   => $inspeksi['foto_ruangan'],
+                'url'        => Helper::uploadUrl("inspeksi/{$id}/{$inspeksi['foto_ruangan']}"),
+                'is_ruangan' => true,
+            ];
+        }
+
+        // 2. Ambil foto checklist per item
         $details = $this->detailModel->query(
             "SELECT d.id, d.standar_id, d.foto, d.kondisi, sk.aspek
              FROM inspeksi_detail d
              JOIN standar_kebersihan sk ON sk.id = d.standar_id
              WHERE d.inspeksi_id = ? AND d.foto IS NOT NULL AND d.foto != ''",
-            [(int)$inspeksiId]
+            [$id]
         );
 
-        $photos = array_map(function ($d) use ($inspeksiId) {
-            return [
+        foreach ($details as $d) {
+            $photos[] = [
                 'id'         => $d['id'],
                 'standar_id' => $d['standar_id'],
                 'aspek'      => $d['aspek'],
                 'kondisi'    => $d['kondisi'],
                 'filename'   => $d['foto'],
-                'url'        => Helper::uploadUrl("inspeksi/{$inspeksiId}/{$d['foto']}"),
+                'url'        => Helper::uploadUrl("inspeksi/{$id}/{$d['foto']}"),
+                'is_ruangan' => false,
             ];
-        }, $details);
+        }
 
         $this->json(['total' => count($photos), 'photos' => $photos]);
     }

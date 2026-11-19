@@ -82,14 +82,20 @@ $skor = (float)($inspeksi['skor_total'] ?? 0);
   </div>
 
   <?php if (!empty($inspeksi['foto_ruangan'])): ?>
-  <div class="mt-3 p-3 bg-light rounded-3 d-flex align-items-center gap-3 border">
-    <img src="<?= Helper::uploadUrl("inspeksi/{$inspeksi['id']}/{$inspeksi['foto_ruangan']}") ?>"
-         class="rounded border shadow-sm" style="height:80px; width:110px; object-fit:cover; cursor:pointer"
-         onclick="showPhoto(this.src)">
-    <div>
-      <div class="fw-semibold small text-dark"><i class="bi bi-camera-fill me-1 text-success"></i>Foto Dokumentasi Ruangan</div>
-      <div class="text-muted" style="font-size:11.5px">Kondisi umum ruangan saat inspeksi dimulai. Klik foto untuk perbesar.</div>
+  <div class="mt-3 p-3 bg-light rounded-3 d-flex align-items-center justify-content-between gap-3 border flex-wrap">
+    <div class="d-flex align-items-center gap-3">
+      <img src="<?= Helper::uploadUrl("inspeksi/{$inspeksi['id']}/{$inspeksi['foto_ruangan']}") ?>"
+           class="rounded-3 border shadow-sm" style="height:85px; width:115px; object-fit:cover; cursor:pointer"
+           onclick="openGallery(this.src, 'Dokumentasi Kondisi Ruangan', 'Ruangan', 'bg-primary')"
+           alt="Foto Ruangan">
+      <div>
+        <div class="fw-bold small text-dark"><i class="bi bi-camera-fill me-1 text-success"></i>Foto Dokumentasi Ruangan</div>
+        <div class="text-muted" style="font-size:11.5px">Kondisi umum ruangan saat inspeksi dimulai. Klik foto untuk perbesar full-screen.</div>
+      </div>
     </div>
+    <button type="button" class="btn btn-sm btn-outline-success" onclick="loadGallery(<?= (int)$inspeksi['id'] ?>)">
+      <i class="bi bi-images me-1"></i>Buka Galeri Foto
+    </button>
   </div>
   <?php endif; ?>
 </div>
@@ -122,22 +128,31 @@ $skor = (float)($inspeksi['skor_total'] ?? 0);
       <div class="list-group list-group-flush">
         <?php foreach ($details as $i => $det):
           $bc = match($det['kondisi']){'bersih'=>'success','kurang_bersih'=>'warning',default=>'danger'};
+          $badgeCls = $bc === 'success' ? 'bg-success' : ($bc === 'warning' ? 'bg-warning text-dark' : 'bg-danger');
         ?>
-        <div class="list-group-item px-0 py-2">
+        <div class="list-group-item px-0 py-3">
           <div class="d-flex align-items-start gap-3">
             <span class="badge bg-<?= $bc ?> mt-1" style="min-width:28px;text-align:center"><?= $i+1 ?></span>
             <div class="flex-grow-1">
-              <div class="fw-semibold small"><?= Helper::e($det['aspek']) ?></div>
-              <?php if ($det['catatan']): ?>
+              <div class="fw-semibold small text-dark"><?= Helper::e($det['aspek']) ?></div>
+              <?php if (!empty($det['catatan'])): ?>
                 <div class="text-muted mt-1" style="font-size:12px">
-                  <i class="bi bi-chat-text me-1"></i><?= Helper::e($det['catatan']) ?>
+                  <i class="bi bi-chat-text me-1 text-primary"></i><?= Helper::e($det['catatan']) ?>
                 </div>
               <?php endif; ?>
-              <?php if ($det['foto']): ?>
-                <div class="mt-1">
+              <?php if (!empty($det['foto'])): ?>
+                <div class="mt-2 d-flex align-items-center gap-2">
                   <img src="<?= Helper::uploadUrl("inspeksi/{$inspeksi['id']}/{$det['foto']}") ?>"
-                       class="rounded border" style="max-height:80px;cursor:pointer"
-                       onclick="showPhoto(this.src)">
+                       class="rounded-2 border shadow-xs" style="height:65px; width:85px; object-fit:cover; cursor:pointer"
+                       onclick="openGallery(this.src, '<?= Helper::e($det['aspek']) ?>', '<?= Helper::statusLabel($det['kondisi']) ?>', '<?= $badgeCls ?>')"
+                       alt="Bukti foto">
+                  <span class="badge bg-light text-dark border small" style="font-size:11px">
+                    <i class="bi bi-camera-fill text-success me-1"></i>Bukti Foto
+                  </span>
+                </div>
+              <?php else: ?>
+                <div class="mt-1 text-muted" style="font-size:11px">
+                  <i class="bi bi-camera text-secondary me-1"></i><span class="text-muted opacity-75">Tanpa foto bukti</span>
                 </div>
               <?php endif; ?>
             </div>

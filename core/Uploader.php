@@ -29,13 +29,15 @@ class Uploader
     /**
      * Upload & simpan foto inspeksi
      * @param  array  $_FILES entry
-     * @param  int    $inspeksiId   → disimpan di uploads/inspeksi/{id}/
-     * @return array  ['success'=>bool, 'filename'=>string, 'error'=>string]
+     * @param  int    $inspeksiId   → disimpan di uploads/inspeksi/{id}/ atau Supabase Storage
+     * @param  string $prefixName   → nama prefix file (misal 'ruangan', 'item_1')
+     * @return array  ['success'=>bool, 'filename'=>string, 'url'=>string, 'error'=>string]
      */
-    public function uploadInspeksiFoto(array $file, int $inspeksiId): array
+    public function uploadInspeksiFoto(array $file, int $inspeksiId, string $prefixName = 'foto'): array
     {
         $targetDir = $this->baseDir . "/inspeksi/{$inspeksiId}";
-        return $this->process($file, $targetDir);
+        $subPath   = "inspeksi/{$inspeksiId}";
+        return $this->process($file, $targetDir, $prefixName, $subPath);
     }
 
     /**
@@ -44,8 +46,8 @@ class Uploader
     public function uploadProfilePhoto(array $file, int $userId): array
     {
         $targetDir = $this->baseDir . '/profile';
-        $result    = $this->process($file, $targetDir, "user_{$userId}");
-        return $result;
+        $subPath   = "profile";
+        return $this->process($file, $targetDir, "user_{$userId}", $subPath);
     }
 
     /**
@@ -53,91 +55,102 @@ class Uploader
      */
     public function delete(string $relativePath): bool
     {
+        $cleanPath = ltrim(str_replace('\\', '/', $relativePath), '/');
         $supabase = new SupabaseStorage();
         if ($supabase->isConfigured()) {
-            $supabase->delete($relativePath);
+            $supabase->delete($cleanPath);
         }
 
-        $full = $this->baseDir . '/' . ltrim($relativePath, '/');
+        $full = $this->baseDir . '/' . $cleanPath;
         if (file_exists($full)) {
-            return unlink($full);
+            return @unlink($full);
         }
         return false;
     }
 
     /* ── Core process ────────────────────────────────────── */
 
-    private function process(array $file, string $targetDir, string $prefixName = ''): array
+    private function process(array $file, string $targetDir, string $prefixName = '', string $subPath = ''): array
     {
         // 1. Cek upload error
         if (!isset($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
             return $this->err($this->uploadErrorMessage($file['error'] ?? 99));
         }
 
-        // 2. Validasi ukuran
-        $sizeKb = $file['size'] / 1024;
+        // 2. Validasi ukuran (hingga 10 MB)
+        $sizeKb = ($file['size'] ?? 0) / 1024;
         if ($sizeKb > $this->maxSizeKb) {
-            return $this->err("Ukuran file melebihi batas {$this->maxSizeKb} KB.");
+            return $this->err("Ukuran file melebihi batas " . round($this->maxSizeKb / 1024) . " MB.");
         }
 
-        // 3. Validasi ekstensi (dari nama file)
-        $origExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($origExt, $this->allowed, true)) {
+        // 3. Validasi ekstensi
+        $origExt = strtolower(pathinfo($file['name'] ?? '', PATHINFO_EXTENSION));
+        if ($origExt && !in_array($origExt, $this->allowed, true)) {
             return $this->err('Format file tidak diizinkan. Gunakan: ' . implode(', ', $this->allowed));
         }
 
-        // 4. Validasi MIME type via finfo (lebih aman dari ekstensi)
-        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
+        // 4. Validasi MIME type via finfo
+        $mimeType = 'image/jpeg';
+        if (function_exists('finfo_open')) {
+            $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $file['tmp_name']) ?: 'image/jpeg';
+            finfo_close($finfo);
+        }
 
         $allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
         if (!in_array($mimeType, $allowedMime, true)) {
-            return $this->err('File bukan gambar yang valid.');
+            return $this->err('File bukan format gambar yang didukung.');
         }
 
-        // 5. Buat direktori target
-        if (!is_dir($targetDir)) {
-            if (!mkdir($targetDir, 0755, true)) {
-                return $this->err('Gagal membuat direktori upload.');
-            }
-            // Copy .htaccess keamanan
-            $htaccessSrc = $this->baseDir . '/inspeksi/.htaccess';
-            if (file_exists($htaccessSrc)) {
-                copy($htaccessSrc, $targetDir . '/.htaccess');
-            }
-        }
-
-        // 6. Generate nama file unik
-        $ext      = 'jpg'; // selalu simpan sebagai JPG/WebP setelah compress
+        // 5. Generate nama file unik
+        $ext      = 'jpg';
         $prefix   = $prefixName ?: 'foto';
         $filename = $prefix . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-        $destPath = $targetDir . '/' . $filename;
+
+        // 6. Buat file sementara di sys_get_temp_dir() (aman di Serverless Vercel /tmp)
+        $tempDir  = sys_get_temp_dir();
+        $tempPath = rtrim($tempDir, '/\\') . DIRECTORY_SEPARATOR . 'tmp_' . uniqid('alw_', true) . '.jpg';
 
         // 7. Proses gambar (resize + compress)
-        $processed = $this->processImage($file['tmp_name'], $mimeType, $destPath);
+        $processed = $this->processImage($file['tmp_name'], $mimeType, $tempPath);
         if (!$processed) {
-            return $this->err('Gagal memproses gambar.');
+            @unlink($tempPath);
+            return $this->err('Gagal memproses dan mengompresi gambar.');
         }
 
-        // 8. Integrasi Supabase Storage jika dikonfigurasi
+        // 8. Integrasi Supabase Storage jika dikonfigurasi (Utama di Vercel / Cloud)
         $supabase = new SupabaseStorage();
         if ($supabase->isConfigured()) {
-            $subPath = str_replace(rtrim($this->baseDir, '/\\'), '', $targetDir);
-            $storagePath = trim(str_replace('\\', '/', $subPath), '/') . '/' . $filename;
-            $sbResult = $supabase->upload($storagePath, $destPath, 'image/jpeg');
+            $storageFolder = $subPath ? trim(str_replace('\\', '/', $subPath), '/') : 'inspeksi';
+            $storagePath   = $storageFolder . '/' . $filename;
+
+            $sbResult = $supabase->upload($storagePath, $tempPath, 'image/jpeg');
+            @unlink($tempPath);
+
             if ($sbResult['success']) {
                 return [
                     'success'  => true,
                     'filename' => $filename,
                     'url'      => $sbResult['url'],
+                    'path'     => $storagePath,
                     'error'    => '',
                 ];
             }
-            return $this->err('Supabase Upload: ' . $sbResult['error']);
+            return $this->err('Supabase Upload: ' . ($sbResult['error'] ?? 'Gagal upload ke cloud storage.'));
         }
 
-        return ['success' => true, 'filename' => $filename, 'error' => ''];
+        // 9. Fallback Local Disk (untuk offline development XAMPP/Laragon)
+        if (!is_dir($targetDir)) {
+            @mkdir($targetDir, 0755, true);
+        }
+        $destPath = $targetDir . '/' . $filename;
+        if (is_dir($targetDir) && @copy($tempPath, $destPath)) {
+            @unlink($tempPath);
+            return ['success' => true, 'filename' => $filename, 'error' => ''];
+        }
+
+        @unlink($tempPath);
+        return $this->err('Gagal menyimpan file ke penyimpanan server.');
     }
 
     /* ── Image processing ────────────────────────────────── */

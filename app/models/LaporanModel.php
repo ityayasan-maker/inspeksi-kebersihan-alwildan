@@ -26,7 +26,8 @@ class LaporanModel extends Model
 
         $sql = "SELECT
                   i.id, i.tanggal, i.skor_total, i.status, i.catatan_umum,
-                  i.waktu_mulai, i.created_at,
+                  i.waktu_mulai, i.created_at, i.foto_ruangan,
+                  (SELECT COUNT(*) FROM inspeksi_detail WHERE inspeksi_id = i.id AND foto IS NOT NULL AND foto != '') AS total_foto_item,
                   r.nama  AS ruangan_nama, r.kode  AS ruangan_kode, r.tipe AS ruangan_tipe,
                   l.nama  AS lantai_nama,
                   g.id    AS gedung_id,

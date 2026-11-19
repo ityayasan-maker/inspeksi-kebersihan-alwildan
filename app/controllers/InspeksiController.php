@@ -97,11 +97,15 @@ class InspeksiController extends Controller
         // Simpan foto kondisi ruangan utama jika ada
         if (!empty($_FILES['foto_ruangan']['name']) && ($_FILES['foto_ruangan']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
             $uploader = new Uploader();
-            $resFotoRuangan = $uploader->uploadInspeksiFoto($_FILES['foto_ruangan'], $inspeksiId);
+            $resFotoRuangan = $uploader->uploadInspeksiFoto($_FILES['foto_ruangan'], $inspeksiId, 'ruangan');
             if ($resFotoRuangan['success']) {
                 try {
                     $this->model->update($inspeksiId, ['foto_ruangan' => $resFotoRuangan['filename']]);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                    error_log("[InspeksiController] Gagal update foto_ruangan: " . $e->getMessage());
+                }
+            } else {
+                error_log("[InspeksiController] Upload foto_ruangan gagal: " . ($resFotoRuangan['error'] ?? ''));
             }
         }
 
@@ -266,12 +270,14 @@ class InspeksiController extends Controller
                     'error'    => $files['error'][$standarId],
                     'size'     => $files['size'][$standarId] ?? 0,
                 ];
-                $uploadRes = $uploader->uploadInspeksiFoto($singleFile, $inspeksiId);
+                $uploadRes = $uploader->uploadInspeksiFoto($singleFile, $inspeksiId, "item_{$standarId}");
                 if ($uploadRes['success']) {
                     if ($foto && $foto !== $uploadRes['filename']) {
                         $uploader->delete("inspeksi/{$inspeksiId}/{$foto}");
                     }
                     $foto = $uploadRes['filename'];
+                } else {
+                    error_log("[InspeksiController] Upload checklist foto item {$standarId} gagal: " . ($uploadRes['error'] ?? ''));
                 }
             }
 

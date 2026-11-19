@@ -52,18 +52,22 @@ class LaporanController extends Controller
         fputcsv($out, [
             'No','ID','Tanggal','Gedung','Unit','Lantai','Ruangan','Kode Ruangan',
             'Tipe Ruangan','Petugas PJ','Diinspeksi Oleh',
-            'Skor','Status','Waktu Mulai','Catatan Umum'
+            'Skor','Status','Waktu Mulai','Jumlah Foto Bukti','Link Foto Ruangan','Catatan Umum'
         ], ';');
 
         $no = 1;
         $tipeList = StandarModel::tipeList();
         foreach ($rows as $r) {
+            $hasFotoR  = !empty($r['foto_ruangan']);
+            $linkFotoR = $hasFotoR ? Helper::uploadUrl("inspeksi/{$r['id']}/{$r['foto_ruangan']}") : '-';
+            $totalFoto = ($hasFotoR ? 1 : 0) + (int)($r['total_foto_item'] ?? 0);
+
             fputcsv($out, [
                 $no++,
                 $r['id'],
                 $r['tanggal'],
                 $r['gedung_nama'],
-                strtoupper($r['gedung_unit']),
+                strtoupper($r['gedung_unit'] ?? ''),
                 $r['lantai_nama'],
                 $r['ruangan_nama'],
                 $r['ruangan_kode'],
@@ -73,6 +77,8 @@ class LaporanController extends Controller
                 $r['skor_total'] !== null ? number_format((float)$r['skor_total'],1,',','') : '-',
                 Helper::statusLabel($r['status'] ?? ''),
                 $r['waktu_mulai'] ?? '-',
+                $totalFoto,
+                $linkFotoR,
                 $r['catatan_umum'] ?? '-',
             ], ';');
         }
