@@ -127,10 +127,10 @@ class Router
     {
         $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
-        if (!empty($_GET['url'])) {
-            $uri = trim(parse_url($_GET['url'], PHP_URL_PATH), '/');
+        if (isset($_GET['url'])) {
+            $uri = trim(parse_url($_GET['url'], PHP_URL_PATH) ?? '', '/');
         } else {
-            $rawUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+            $rawUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
             $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '');
             if ($scriptDir !== '/' && $scriptDir !== '\\' && $scriptDir !== '.') {
                 $scriptDirNormalized = str_replace('\\', '/', $scriptDir);
