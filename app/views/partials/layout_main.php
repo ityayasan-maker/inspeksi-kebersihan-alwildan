@@ -417,22 +417,166 @@ function startProgress() {
     bar.style.width = '75%';
   }
 }
+
+function finishProgress() {
+  const bar = document.getElementById('topProgressBar');
+  if (bar) {
+    bar.style.width = '100%';
+    setTimeout(() => {
+      bar.style.opacity = '0';
+      setTimeout(() => { bar.style.width = '0%'; }, 200);
+    }, 150);
+  }
+}
 window.addEventListener('beforeunload', startProgress);
 
-// Respon klik instan & feedback cepat pada setiap link
-document.querySelectorAll('a[href]').forEach(a => {
-  const href = a.getAttribute('href');
-  if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-    a.addEventListener('click', e => {
-      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && a.target !== '_blank') {
-        startProgress();
-        // Tutup sidebar jika di mobile setelah klik menu
-        if (window.innerWidth <= 768 && a.classList.contains('sb-link') && !a.classList.contains('sb-toggle')) {
-          sidebar.classList.remove('open');
-          overlay.classList.remove('active');
-        }
-      }
+// ── Instant Realtime SPA Navigator (0-Second Page Swap) ──
+const PageCache = {};
+
+function executePageScripts(container) {
+  // Jalankan script halaman yang diswap
+  container.querySelectorAll('script').forEach(oldScript => {
+    const newScript = document.createElement('script');
+    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+    oldScript.parentNode.replaceChild(newScript, oldScript);
+  });
+}
+
+async function spaNavigate(url, push = true) {
+  const mainEl = document.getElementById('main-content');
+  if (!mainEl) {
+    window.location.href = url;
+    return;
+  }
+
+  // Tampilkan progress bar kilat
+  startProgress();
+
+  // 1. Cek Memory Cache untuk navigasi 0 ms (Super Realtime!)
+  if (PageCache[url]) {
+    const cached = PageCache[url];
+    if (cached.title) document.title = cached.title;
+    mainEl.innerHTML = cached.content;
+    executePageScripts(mainEl);
+    updateActiveSidebar(url);
+    if (push) history.pushState({ spa: true, url }, cached.title, url);
+    finishProgress();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    // Revalidasi di latar belakang (Stale-While-Revalidate)
+    fetchPageInBackground(url);
+    return;
+  }
+
+  // 2. Fetch halaman via network jika belum di-cache
+  try {
+    const res = await fetch(url, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
+
+    if (!res.ok) {
+      window.location.href = url;
+      return;
+    }
+
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    const newMain = doc.getElementById('main-content');
+    if (!newMain) {
+      window.location.href = url;
+      return;
+    }
+
+    const title = doc.title || document.title;
+    document.title = title;
+
+    // Simpan ke memory cache
+    PageCache[url] = { title, content: newMain.innerHTML };
+
+    // Swap content
+    mainEl.innerHTML = newMain.innerHTML;
+    executePageScripts(mainEl);
+    updateActiveSidebar(url);
+
+    if (push) {
+      history.pushState({ spa: true, url }, title, url);
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  } catch (err) {
+    window.location.href = url;
+  } finally {
+    finishProgress();
+  }
+}
+
+async function fetchPageInBackground(url) {
+  try {
+    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    if (res.ok) {
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const newMain = doc.getElementById('main-content');
+      if (newMain) {
+        PageCache[url] = { title: doc.title, content: newMain.innerHTML };
+      }
+    }
+  } catch (e) {}
+}
+
+function updateActiveSidebar(targetUrl) {
+  document.querySelectorAll('.sb-link').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && (href === targetUrl || targetUrl.endsWith(href))) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+
+// Delegasi klik link agar realtime instan
+document.addEventListener('click', e => {
+  const a = e.target.closest('a');
+  if (!a) return;
+
+  const href = a.getAttribute('href');
+  if (
+    !href ||
+    href.startsWith('#') ||
+    href.startsWith('javascript:') ||
+    a.target === '_blank' ||
+    a.hasAttribute('download') ||
+    a.dataset.noSpa ||
+    href.includes('logout') ||
+    href.includes('export') ||
+    href.includes('print') ||
+    e.ctrlKey || e.metaKey || e.shiftKey
+  ) {
+    return; // Gunakan navigasi biasa
+  }
+
+  // Hanya tangani link internal aplikasi
+  if (href.startsWith('/') || href.includes(window.location.hostname)) {
+    e.preventDefault();
+
+    // Tutup sidebar di mobile langsung
+    if (window.innerWidth <= 768) {
+      sidebar?.classList.remove('open');
+      overlay?.classList.remove('active');
+    }
+
+    spaNavigate(href);
+  }
+});
+
+// Dukung tombol Back / Forward browser
+window.addEventListener('popstate', e => {
+  if (e.state && e.state.spa) {
+    spaNavigate(window.location.href, false);
+  } else {
+    window.location.reload();
   }
 });
 

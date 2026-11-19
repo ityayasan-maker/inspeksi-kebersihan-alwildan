@@ -4,6 +4,7 @@
       "runtime": "vercel-php@0.7.3"
     }
   },
+  "regions": ["sin1"],
   "routes": [
     {
       "src": "/public/(.*)",

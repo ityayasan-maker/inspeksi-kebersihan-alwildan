@@ -16,16 +16,16 @@ class Security
             header('X-Frame-Options: SAMEORIGIN');
             header('X-XSS-Protection: 1; mode=block');
             header('Referrer-Policy: strict-origin-when-cross-origin');
-            header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+            header('Permissions-Policy: camera=(self), microphone=(), geolocation=()');
 
-            // CSP: izinkan cdn yang dipakai
+            // CSP: izinkan cdn yang dipakai dan supabase storage
             $csp = implode('; ', [
                 "default-src 'self'",
                 "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://api.anthropic.com",
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net",
-                "img-src 'self' data: blob:",
-                "font-src 'self' https://cdn.jsdelivr.net",
-                "connect-src 'self'",
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net https://fonts.googleapis.com",
+                "img-src 'self' data: blob: https://*.supabase.co https://mvopjzbvhcdnnwyvucdy.supabase.co",
+                "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
+                "connect-src 'self' https://*.supabase.co https://mvopjzbvhcdnnwyvucdy.supabase.co",
                 "frame-ancestors 'none'",
             ]);
             header("Content-Security-Policy: {$csp}");
