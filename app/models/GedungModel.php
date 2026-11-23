@@ -3,6 +3,11 @@ class GedungModel extends Model
 {
     protected string $table = 'gedung';
 
+    public function allActive(): array
+    {
+        return $this->query("SELECT * FROM gedung WHERE is_active = 1 ORDER BY unit, nama");
+    }
+
     public function allWithCount(): array
     {
         return $this->query(
