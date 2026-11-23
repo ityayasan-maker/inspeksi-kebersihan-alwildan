@@ -68,6 +68,11 @@ class Helper
         return date('d', $ts) . ' ' . $months[(int)date('n', $ts)] . ' ' . date('Y', $ts);
     }
 
+    public static function tanggal(string $date): string
+    {
+        return self::dateId($date);
+    }
+
     /* ── Scoring ─────────────────────────────────────────── */
 
     public static function skorLabel(float $skor): string
