@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumen Serah Terima Sistem & Akun Pengguna — Al-Wildan 8 Kemang</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    * { font-family: 'Poppins', sans-serif !important; }
+    body { background-color: #f8fafc; color: #1e293b; padding: 30px 15px; }
+    .doc-card {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 45px 50px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .header-kop {
+      border-bottom: 3px double #0f2744;
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+    }
+    .logo-img { width: 80px; height: 80px; object-fit: contain; }
+    .table-custom {
+      font-size: 13px;
+      border: 1px solid #cbd5e1;
+    }
+    .table-custom th {
+      background: #0f2744;
+      color: #ffffff;
+      font-weight: 600;
+      vertical-align: middle;
+      padding: 10px 12px;
+    }
+    .table-custom td {
+      vertical-align: middle;
+      padding: 9px 12px;
+      border-color: #e2e8f0;
+    }
+    .badge-role {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .badge-admin { background: #fee2e2; color: #b91c1c; }
+    .badge-spv   { background: #e0e7ff; color: #4338ca; }
+    .badge-eval  { background: #e0f2fe; color: #0369a1; }
+    .badge-staff { background: #dcfce7; color: #15803d; }
+    .pass-box {
+      font-family: monospace !important;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+    .sop-box {
+      background: #f8fafc;
+      border-left: 4px solid #1a56db;
+      padding: 16px 20px;
+      border-radius: 0 12px 12px 0;
+      margin-bottom: 25px;
+      border: 1px solid #e2e8f0;
+      border-left-width: 4px;
+    }
+    .btn-print {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      z-index: 999;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .doc-card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+      .btn-print, .no-print { display: none !important; }
+      .table-custom th { background: #0f2744 !important; color: #fff !important; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Tombol Print Floating -->
+  <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold btn-print" onclick="window.print()">
+    <i class="bi bi-printer me-2"></i>Cetak / Simpan PDF
+  </button>
+
+  <div class="doc-card">
+    <!-- Kop Surat Resmi -->
+    <div class="d-flex align-items-center gap-4 header-kop">
+      <img src="img/logo-alwildan.png" alt="Logo Al-Wildan" class="logo-img" onerror="this.src='icons/icon-192x192.png'">
+      <div class="flex-grow-1">
+        <h4 class="fw-bold mb-0" style="color:#0f2744; letter-spacing: -0.02em;">AL-WILDAN ISLAMIC SCHOOL 8 KEMANG BOGOR</h4>
+        <div class="text-secondary small fw-medium">Badan Pengelola &amp; Manajemen Kebersihan Lingkungan Sekolah</div>
+        <div class="text-muted" style="font-size: 11px;">Jl. Raya Parung - Kemang, Bogor, Jawa Barat | Web: inspeksi-kebersihan-alwildan.vercel.app</div>
+      </div>
+    </div>
+
+    <!-- Judul Dokumen -->
+    <div class="text-center mb-4">
+      <h5 class="fw-bold text-uppercase mb-1" style="color:#0f2744; text-decoration: underline;">BERITA ACARA SERAH TERIMA SISTEM &amp; KREDENSIAL PENGGUNA</h5>
+      <div class="text-muted small">Nomor: BAST/ALW-8/INSP/XI/2026 &bull; Tanggal: 23 November 2026</div>
+    </div>
+
+    <!-- Ringkasan Sistem -->
+    <p style="font-size: 13.5px; line-height: 1.6;">
+      Pada hari ini, <strong>Senin, 23 November 2026</strong>, telah diserahterimakan hak akses serta kredensial akun operasional <strong>Sistem Informasi Inspeksi Kebersihan Al-Wildan Islamic School 8 Kemang Bogor</strong> kepada pihak Administrator Sekolah, dengan rincian data sebagai berikut:
+    </p>
+
+    <!-- 1. Akun Manajemen & Penilai -->
+    <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-shield-lock me-2 text-primary"></i>1. Kredensial Akun Manajemen &amp; Penilai Mutu</h6>
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered table-custom">
+        <thead>
+          <tr>
+            <th style="width: 50px;" class="text-center">No</th>
+            <th>Jabatan / Role</th>
+            <th>Nama Lengkap</th>
+            <th>Email / Username Login</th>
+            <th>Password Default</th>
+            <th>Tugas &amp; Wewenang</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-center fw-bold">1</td>
+            <td><span class="badge-role badge-admin">Super Admin</span></td>
+            <td class="fw-bold">Administrator Al Wildan</td>
+            <td><code>admin@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Admin@123</span></td>
+            <td class="small">Akses penuh sistem, manajemen user, lokasi &amp; pengaturan.</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">2</td>
+            <td><span class="badge-role badge-spv">Supervisor</span></td>
+            <td class="fw-bold">Pak Arif (Supervisor)</td>
+            <td><code>arif.supervisor@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td class="small">Monitoring harian staf, atur jadwal, evaluasi foto &amp; cetak laporan.</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">3</td>
+            <td><span class="badge-role badge-eval">Penilai</span></td>
+            <td class="fw-bold">Kepala Sekolah SD (Penilai)</td>
+            <td><code>kepsek.sd@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td class="small">Penilai &amp; evaluasi mutu kebersihan unit SD &amp; fasilitas umum.</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">4</td>
+            <td><span class="badge-role badge-eval">Penilai</span></td>
+            <td class="fw-bold">Kepala Sekolah SMP/SMA (Penilai)</td>
+            <td><code>kepsek.smpsma@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td class="small">Penilai &amp; evaluasi mutu kebersihan unit SMP &amp; SMA.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 2. Akun 8 Staf Kebersihan -->
+    <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-people me-2 text-success"></i>2. Kredensial 8 Orang Staf Kebersihan (Cleaning Service)</h6>
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered table-custom">
+        <thead>
+          <tr>
+            <th style="width: 50px;" class="text-center">No</th>
+            <th>Nama Staf Kebersihan</th>
+            <th>Email / Username Login</th>
+            <th>Password</th>
+            <th>Penugasan Area Kerja Utama</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-center fw-bold">1</td>
+            <td class="fw-bold">Ahmad Fauzi (Staf 1)</td>
+            <td><code>petugas1@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung A Lantai 1 (Lobby Utama &amp; Ruang Kelas 1A SD)</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">2</td>
+            <td class="fw-bold">Bambang Sutrisno (Staf 2)</td>
+            <td><code>petugas2@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung A Lantai 1 (Kantor Kepsek/TU SD &amp; Toilet Guru/Tamu)</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">3</td>
+            <td class="fw-bold">Dedi Supriyadi (Staf 3)</td>
+            <td><code>petugas3@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung A (Musholla / Masjid Al-Wildan &amp; Toilet Lt 2)</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">4</td>
+            <td class="fw-bold">Hendra Setiawan (Staf 4)</td>
+            <td><code>petugas4@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung A Lantai 2 (Ruang Kelas 3A SD &amp; Lab Komputer SD)</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">5</td>
+            <td class="fw-bold">Joko Wahyudi (Staf 5)</td>
+            <td><code>petugas5@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung B Lantai 1 (Lobby Gedung B &amp; Ruang Kelas 7A SMP)</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">6</td>
+            <td class="fw-bold">Mulyadi (Staf 6)</td>
+            <td><code>petugas6@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung B Lantai 1 (Kantor Guru SMP/SMA &amp; Toilet Siswa Lt 1)</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">7</td>
+            <td class="fw-bold">Rian Hidayat (Staf 7)</td>
+            <td><code>petugas7@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung B Lantai 2 (Ruang Kelas 10 SMA &amp; Laboratorium IPA)</td>
+          </tr>
+          <tr>
+            <td class="text-center fw-bold">8</td>
+            <td class="fw-bold">Saepudin (Staf 8)</td>
+            <td><code>petugas8@alwildan.sch.id</code></td>
+            <td><span class="pass-box">Alwildan@123</span></td>
+            <td>Gedung B Lantai 2 (Perpustakaan, Ruang Rapat &amp; Toilet Lt 2)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 3. Aturan Jadwal Foto Kebersihan -->
+    <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-clock-history me-2 text-warning"></i>3. Ketentuan Wajib Jadwal Foto Harian</h6>
+    <div class="sop-box">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-warning text-dark fw-bold">☀️ Sesi Pagi</span>
+        <strong>Batas Maksimal Jam 09:00 WIB</strong>
+      </div>
+      <p class="small text-muted mb-3">
+        Staf kebersihan wajib melakukan pembersihan awal pagi dan mengunggah dokumentasi foto ruangan beserta checklist mutu sebelum pukul 09:00 WIB.
+      </p>
+
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-primary fw-bold">🌤️ Sesi Siang</span>
+        <strong>Batas Maksimal Jam 14:00 WIB</strong>
+      </div>
+      <p class="small text-muted mb-0">
+        Staf kebersihan wajib melakukan pembersihan berkala siang hari dan mengunggah dokumentasi foto kedua sebelum pukul 14:00 WIB.
+      </p>
+    </div>
+
+    <!-- Tanda Tangan Serah Terima -->
+    <div class="row pt-4 mt-4 border-top">
+      <div class="col-6 text-center">
+        <div class="small text-muted mb-1">Diserahkan Oleh:</div>
+        <div class="fw-semibold">Tim Pengembang IT Sistem</div>
+        <div style="height: 70px;"></div>
+        <div class="fw-bold text-decoration-underline">( Tim Pengembang )</div>
+        <div class="small text-muted">IT Yayasan &amp; Pengembang</div>
+      </div>
+      <div class="col-6 text-center">
+        <div class="small text-muted mb-1">Diterima Oleh:</div>
+        <div class="fw-semibold">Administrator Al-Wildan 8</div>
+        <div style="height: 70px;"></div>
+        <div class="fw-bold text-decoration-underline">( Administrator Al-Wildan )</div>
+        <div class="small text-muted">Penanggung Jawab Sekolah</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
