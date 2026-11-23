@@ -185,13 +185,27 @@ $statusList = [''=>'Semua Status','bersih'=>'Bersih','kurang_bersih'=>'Kurang Be
           <td class="text-center"><?= Helper::statusBadge($r['status'] ?? '') ?></td>
           <td class="text-center">
             <?php if ($totalFoto > 0): ?>
-              <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 py-1 px-2 rounded-2"
-                      onclick="loadGallery(<?= $r['id'] ?>)" title="Lihat <?= $totalFoto ?> Foto Dokumentasi">
-                <i class="bi bi-camera-fill"></i>
-                <span style="font-size:11px"><?= $totalFoto ?> Foto</span>
-              </button>
+              <div class="d-inline-flex align-items-center gap-1">
+                <?php if ($hasRuangan): ?>
+                  <img src="<?= Helper::uploadUrl("inspeksi/{$r['id']}/{$r['foto_ruangan']}") ?>"
+                       alt="Thumbnail" class="rounded border shadow-xs"
+                       style="width:36px; height:36px; object-fit:cover; cursor:pointer;"
+                       onclick="loadGallery(<?= $r['id'] ?>, '<?= Helper::e($r['ruangan_nama']) ?>')"
+                       title="Klik lihat foto ruangan"
+                       onerror="this.style.display='none'">
+                <?php endif; ?>
+                <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 py-1 px-2 rounded-2"
+                        onclick="loadGallery(<?= $r['id'] ?>, '<?= Helper::e($r['ruangan_nama']) ?>')" title="Lihat <?= $totalFoto ?> Foto Dokumentasi">
+                  <i class="bi bi-camera-fill"></i>
+                  <span style="font-size:11px"><?= $totalFoto ?> Foto</span>
+                </button>
+              </div>
             <?php else: ?>
-              <span class="text-muted small" style="font-size:11px">—</span>
+              <button type="button" class="btn btn-sm btn-light border text-muted d-inline-flex align-items-center gap-1 py-1 px-2 rounded-2"
+                      onclick="loadGallery(<?= $r['id'] ?>, '<?= Helper::e($r['ruangan_nama']) ?>')" title="Lihat status dokumentasi foto">
+                <i class="bi bi-camera text-muted"></i>
+                <span style="font-size:11px">0 Foto</span>
+              </button>
             <?php endif; ?>
           </td>
           <td>
@@ -201,7 +215,7 @@ $statusList = [''=>'Semua Status','bersih'=>'Bersih','kurang_bersih'=>'Kurang Be
                 <i class="bi bi-eye"></i>
               </a>
               <button type="button" class="btn btn-sm btn-outline-info" title="Galeri Foto"
-                      onclick="loadGallery(<?= $r['id'] ?>)">
+                      onclick="loadGallery(<?= $r['id'] ?>, '<?= Helper::e($r['ruangan_nama']) ?>')">
                 <i class="bi bi-images"></i>
               </button>
               <a href="<?= Helper::baseUrl("laporan/print?id={$r['id']}") ?>"
@@ -216,6 +230,8 @@ $statusList = [''=>'Semua Status','bersih'=>'Bersih','kurang_bersih'=>'Kurang Be
     </table>
   </div>
 </div>
+
+<?php require_once APP_PATH . '/views/partials/gallery_modal.php'; ?>
 
 <script>
 $('#tblLaporan').DataTable({

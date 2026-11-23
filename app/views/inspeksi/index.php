@@ -109,3 +109,5 @@ $statusOpt = [''=>'Semua Status','bersih'=>'Bersih','kurang_bersih'=>'Kurang Ber
     <?= Helper::paginationLinks($paginator, Helper::baseUrl('inspeksi')) ?>
   </div>
 </div>
+
+<?php require_once APP_PATH . '/views/partials/gallery_modal.php'; ?>

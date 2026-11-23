@@ -624,10 +624,24 @@ function confirmDelete(formId) {
   });
 }
 
-// ── DataTable default ─────────────────────────────────
+// ── DataTable default (Bahasa Indonesia Inline — Cepat & Bebas Error CSP) ──
 $.extend(true, $.fn.dataTable.defaults, {
   language: {
-    url: '//cdn.datatables.net/plug-ins/1.13.8/i18n/id.json'
+    emptyTable: "Tidak ada data yang tersedia pada tabel ini",
+    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+    infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
+    infoFiltered: "(disaring dari _MAX_ entri)",
+    lengthMenu: "Tampilkan _MENU_ data",
+    loadingRecords: "Memuat data...",
+    processing: "Memproses...",
+    search: "Cari:",
+    zeroRecords: "Tidak ada data yang sesuai",
+    paginate: {
+      first: "Awal",
+      last: "Akhir",
+      next: "Berikutnya",
+      previous: "Sebelumnya"
+    }
   },
   pageLength: 15,
   responsive: true,

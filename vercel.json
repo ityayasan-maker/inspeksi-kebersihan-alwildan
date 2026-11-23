@@ -7,8 +7,8 @@
   "regions": ["sin1"],
   "routes": [
     {
-      "src": "/public/(.*)",
-      "dest": "/public/$1"
+      "src": "/public/(css|js|img|icons|uploads)/(.*)",
+      "dest": "/public/$1/$2"
     },
     {
       "src": "/(css|js|img|icons|uploads)/(.*)",

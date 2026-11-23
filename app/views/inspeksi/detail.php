@@ -201,3 +201,5 @@ $skor = (float)($inspeksi['skor_total'] ?? 0);
     </div>
   </div>
 </div>
+
+<?php require_once APP_PATH . '/views/partials/gallery_modal.php'; ?>

@@ -22,7 +22,11 @@ class Helper
 
     public static function asset(string $path): string
     {
-        return self::baseUrl('public/' . ltrim($path, '/'));
+        $clean = ltrim($path, '/');
+        if (str_starts_with($clean, 'public/')) {
+            $clean = substr($clean, 7);
+        }
+        return self::baseUrl($clean);
     }
 
     /* ── String ──────────────────────────────────────────── */

@@ -25,7 +25,7 @@ class Security
                 "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net https://fonts.googleapis.com",
                 "img-src 'self' data: blob: https://*.supabase.co https://mvopjzbvhcdnnwyvucdy.supabase.co",
                 "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
-                "connect-src 'self' https://*.supabase.co https://mvopjzbvhcdnnwyvucdy.supabase.co",
+                "connect-src 'self' https://*.supabase.co https://mvopjzbvhcdnnwyvucdy.supabase.co https://cdn.datatables.net https://cdn.jsdelivr.net",
                 "frame-ancestors 'none'",
             ]);
             header("Content-Security-Policy: {$csp}");
