@@ -24,6 +24,11 @@ class Router
         $this->add('GET',  'dashboard/ranking',      'DashboardController@ranking');
         $this->add('GET',  'dashboard/area-masalah', 'DashboardController@areaMasalah');
 
+        // ── Jadwal Foto Kebersihan ────────────────────────
+        $this->add('GET',  'jadwal',         'JadwalController@index');
+        $this->add('POST', 'jadwal/create',  'JadwalController@store');
+        $this->add('POST', 'jadwal/delete',  'JadwalController@delete');
+
         // ── Master: Gedung ────────────────────────────────
         $this->add('GET',  'gedung',          'GedungController@index');
         $this->add('GET',  'gedung/create',   'GedungController@create');

@@ -46,11 +46,13 @@ class InspeksiController extends Controller
     /* ── GET /inspeksi/create ────────────────────────────── */
     public function create(): void
     {
-        $ruangan    = $this->ruanganModel->allWithRelasi();
-        $gedungList = (new GedungModel())->allWithCount();
-        $petugas    = $this->userModel->allActive();
-        $pageTitle  = 'Form Inspeksi Baru';
-        $this->layout('inspeksi.create', compact('ruangan', 'gedungList', 'petugas', 'pageTitle'));
+        $ruangan           = $this->ruanganModel->allWithRelasi();
+        $gedungList        = (new GedungModel())->allWithCount();
+        $petugas           = $this->userModel->allActive();
+        $selectedRuanganId = (int)$this->get('ruangan_id', 0);
+        $selectedSesi      = $this->get('sesi', '');
+        $pageTitle         = 'Form Inspeksi Baru';
+        $this->layout('inspeksi.create', compact('ruangan', 'gedungList', 'petugas', 'selectedRuanganId', 'selectedSesi', 'pageTitle'));
     }
 
     /* ── POST /inspeksi/create ───────────────────────────── */
@@ -58,11 +60,16 @@ class InspeksiController extends Controller
     {
         $this->verifyCsrf();
 
-        $ruanganId = (int)$this->post('ruangan_id');
-        $tanggal   = $this->post('tanggal', date('Y-m-d'));
-        $waktuMulai = $this->post('waktu_mulai', '') ?: null;
+        $ruanganId   = (int)$this->post('ruangan_id');
+        $tanggal     = $this->post('tanggal', date('Y-m-d'));
+        $waktuMulai  = $this->post('waktu_mulai', '') ?: date('H:i:s');
+        $sesi        = $this->post('sesi', '');
+        if (!$sesi) {
+            $curH = (int)date('H');
+            $sesi = ($curH <= 10) ? 'pagi' : (($curH <= 15) ? 'siang' : 'insidental');
+        }
         $catatanUmum = trim($this->post('catatan_umum', ''));
-        $isDraft   = (int)$this->post('is_draft', 0);
+        $isDraft     = (int)$this->post('is_draft', 0);
 
         if (!$ruanganId) {
             Session::flash('error', 'Pilih ruangan terlebih dahulu.');
@@ -89,6 +96,7 @@ class InspeksiController extends Controller
             'inspected_by_id'     => $inspectedById,
             'tanggal'             => $tanggal,
             'waktu_mulai'         => $waktuMulai,
+            'sesi'                => $sesi,
             'catatan'             => $catatanUmum,
             'catatan_umum'        => $catatanUmum,
             'is_draft'            => $isDraft,

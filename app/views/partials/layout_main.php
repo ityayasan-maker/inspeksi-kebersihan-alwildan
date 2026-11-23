@@ -276,12 +276,13 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
   <div class="sb-section">
     <div class="sb-section-label">Utama</div>
     <?php sbLink('dashboard', 'speedometer2', 'Dashboard', $uri); ?>
+    <?php sbLink('jadwal', 'calendar-check', 'Jadwal Kebersihan', $uri); ?>
     <?php sbLink('inspeksi', 'clipboard2-check', 'Inspeksi', $uri); ?>
     <?php sbLink('laporan', 'file-earmark-bar-graph', 'Laporan', $uri); ?>
     <?php sbLink('notifikasi', 'bell', 'Notifikasi', $uri); ?>
   </div>
 
-  <?php if (in_array($role, ['admin', 'supervisor'])): ?>
+  <?php if (in_array($role, ['admin', 'supervisor', 'penilai'])): ?>
   <div class="sb-section">
     <div class="sb-section-label">Master Data</div>
     <!-- Lokasi submenu -->
@@ -319,7 +320,7 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
     </div>
     <div class="sb-user-info">
       <strong><?= Helper::e($u['name']) ?></strong>
-      <span><?= ucfirst($u['role']) ?></span>
+      <span><?= $u['role'] === 'penilai' ? 'Penilai (Kepsek)' : ucfirst($u['role']) ?></span>
     </div>
     <a href="<?= Helper::baseUrl('logout') ?>" class="sb-logout" title="Logout">
       <i class="bi bi-box-arrow-right"></i>
@@ -352,7 +353,7 @@ body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; font-size: 14px
       </div>
       <div class="text-start d-none d-md-block">
         <div class="topbar-user-name"><?= Helper::e($u['name']) ?></div>
-        <div class="topbar-user-role"><?= ucfirst($u['role']) ?></div>
+        <div class="topbar-user-role"><?= $u['role'] === 'penilai' ? 'Penilai (Kepsek)' : ucfirst($u['role']) ?></div>
       </div>
     </button>
     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="min-width:180px;border-radius:10px">

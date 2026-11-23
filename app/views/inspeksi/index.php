@@ -78,6 +78,9 @@ $statusOpt = [''=>'Semua Status','bersih'=>'Bersih','kurang_bersih'=>'Kurang Ber
             <a href="<?= Helper::baseUrl("inspeksi/detail/{$row['id']}") ?>" class="btn btn-sm btn-outline-primary me-1" title="Detail">
               <i class="bi bi-eye"></i>
             </a>
+            <button type="button" class="btn btn-sm btn-outline-info me-1" title="Galeri Foto" onclick="loadGallery(<?= $row['id'] ?>, '<?= Helper::e($row['ruangan_nama']) ?>')">
+              <i class="bi bi-images"></i>
+            </button>
             <?php if (Session::isRole(['admin','supervisor']) || ($row['is_draft'] && $row['inspected_by_id'] == Session::get('user_id'))): ?>
             <a href="<?= Helper::baseUrl("inspeksi/edit/{$row['id']}") ?>" class="btn btn-sm btn-outline-warning me-1" title="Edit">
               <i class="bi bi-pencil"></i>

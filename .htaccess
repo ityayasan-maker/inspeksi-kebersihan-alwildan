@@ -1,3 +1,14 @@
 RewriteEngine On
+
+# 1. Jika request sudah diawali /public/, jangan ditambahi /public/ lagi
+RewriteCond %{REQUEST_URI} ^/public/ [NC]
+RewriteRule ^ - [L]
+
+# 2. Jika file atau direktori fisik memang ada di root, jangan di-rewrite
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 3. Rewrite semua request lainnya ke public/
 RewriteRule ^$ public/ [L]
-RewriteRule (.*) public/$1 [L]
+RewriteRule ^(.*)$ public/$1 [L]

@@ -21,7 +21,7 @@
       <div class="col-md-5">
         <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
         <select name="role" class="form-select" required>
-          <?php foreach(['petugas'=>'Petugas','supervisor'=>'Supervisor','admin'=>'Admin'] as $v=>$l): ?>
+          <?php foreach(['petugas'=>'Petugas / Staf Kebersihan','supervisor'=>'Supervisor','penilai'=>'Penilai (Kepala Sekolah)','admin'=>'Admin'] as $v=>$l): ?>
             <option value="<?= $v ?>" <?= (($user['role']??'petugas') === $v) ? 'selected':'' ?>><?= $l ?></option>
           <?php endforeach; ?>
         </select>

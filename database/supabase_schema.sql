@@ -99,15 +99,21 @@ CREATE TABLE IF NOT EXISTS inspeksi (
   tanggal DATE NOT NULL,
   waktu_mulai TIME DEFAULT NULL,
   waktu_selesai TIME DEFAULT NULL,
+  sesi VARCHAR(20) NOT NULL DEFAULT 'pagi',
   skor_total NUMERIC(5,2) NOT NULL DEFAULT 0.00,
   status VARCHAR(20) NOT NULL DEFAULT 'kotor',
   catatan TEXT DEFAULT NULL,
+  catatan_umum TEXT DEFAULT NULL,
+  foto_ruangan VARCHAR(255) DEFAULT NULL,
   is_draft SMALLINT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_inspeksi_ruangan ON inspeksi(ruangan_id);
 CREATE INDEX IF NOT EXISTS idx_inspeksi_petugas ON inspeksi(inspected_by_id);
+CREATE INDEX IF NOT EXISTS idx_inspeksi_tanggal ON inspeksi(tanggal);
+CREATE INDEX IF NOT EXISTS idx_inspeksi_sesi ON inspeksi(sesi);
+CREATE INDEX IF NOT EXISTS idx_inspeksi_status ON inspeksi(status);
 CREATE INDEX IF NOT EXISTS idx_inspeksi_tanggal ON inspeksi(tanggal);
 CREATE INDEX IF NOT EXISTS idx_inspeksi_status ON inspeksi(status);
 
@@ -166,6 +172,24 @@ CREATE TABLE IF NOT EXISTS settings (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 12. jadwal_kebersihan (Target foto: Sebelum Jam 09:00 Pagi & Sebelum Jam 14:00 Siang)
+CREATE TABLE IF NOT EXISTS jadwal_kebersihan (
+  id SERIAL PRIMARY KEY,
+  petugas_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  ruangan_id INT NOT NULL REFERENCES ruangan(id) ON DELETE CASCADE,
+  sesi VARCHAR(20) NOT NULL DEFAULT 'pagi',
+  hari VARCHAR(20) DEFAULT 'setiap_hari',
+  jam_mulai TIME DEFAULT '06:30',
+  jam_batas TIME NOT NULL DEFAULT '09:00',
+  catatan TEXT DEFAULT NULL,
+  is_active SMALLINT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_jadwal_petugas ON jadwal_kebersihan(petugas_id);
+CREATE INDEX IF NOT EXISTS idx_jadwal_ruangan ON jadwal_kebersihan(ruangan_id);
+CREATE INDEX IF NOT EXISTS idx_jadwal_sesi ON jadwal_kebersihan(sesi);
 
 -- DATA AWAL: Akun Super Admin Al-Wildan
 INSERT INTO users (name, email, password, role, phone, is_active)

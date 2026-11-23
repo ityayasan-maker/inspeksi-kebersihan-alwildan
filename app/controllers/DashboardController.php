@@ -21,10 +21,11 @@ class DashboardController extends Controller
         $distribusi = $this->model->distribusiStatus();
         $unit       = $this->model->distribusiUnit();
         $heatmap    = $this->model->heatmapRuangan();
-        $pageTitle  = 'Dashboard';
+        $jadwalSummary = (new JadwalModel())->summaryHariIni();
+        $pageTitle     = 'Dashboard';
 
         $this->layout('dashboard.index', compact(
-            'kartu','aktivitas','masalah','ranking','tren','distribusi','unit','heatmap','pageTitle'
+            'kartu','aktivitas','masalah','ranking','tren','distribusi','unit','heatmap','jadwalSummary','pageTitle'
         ));
     }
 

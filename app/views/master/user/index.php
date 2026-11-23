@@ -13,8 +13,8 @@
         <tr>
           <td class="fw-semibold"><?= Helper::e($u['name']) ?></td>
           <td class="small text-muted"><?= Helper::e($u['email']) ?></td>
-          <td><?php $rc=match($u['role']){'admin'=>'danger','supervisor'=>'primary','petugas'=>'success',default=>'secondary'}; ?>
-            <span class="badge bg-<?= $rc ?>"><?= ucfirst($u['role']) ?></span></td>
+          <td><?php $rc=match($u['role']){'admin'=>'danger','supervisor'=>'primary','penilai'=>'info text-dark','petugas'=>'success',default=>'secondary'}; ?>
+            <span class="badge bg-<?= $rc ?>"><?= $u['role'] === 'penilai' ? 'Penilai (Kepsek)' : ucfirst($u['role']) ?></span></td>
           <td class="small"><?= Helper::e($u['phone'] ?? '—') ?></td>
           <td><?= $u['is_active'] ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>' ?></td>
           <td>

@@ -84,6 +84,40 @@
         </div>
       </div>
 
+      <!-- Pilihan Sesi Foto (Pagi < 09:00 / Siang < 14:00) -->
+      <div class="mt-3 pt-2 border-top">
+        <label class="form-label small fw-semibold text-muted mb-1">
+          <i class="bi bi-clock-history text-primary me-1"></i>Sesi Foto Kebersihan <span class="text-danger">*</span>
+        </label>
+        <?php
+          $curH = (int)date('H');
+          $defaultSesi = !empty($selectedSesi) ? $selectedSesi : ($curH <= 10 ? 'pagi' : ($curH <= 15 ? 'siang' : 'insidental'));
+        ?>
+        <div class="row g-2">
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="sesi" id="sesiPagi" value="pagi" <?= $defaultSesi === 'pagi' ? 'checked' : '' ?>>
+            <label class="btn btn-outline-warning text-dark btn-sm w-100 rounded-3 py-2 text-start" for="sesiPagi">
+              <div class="fw-bold" style="font-size:12px"><i class="bi bi-sun-fill text-warning me-1"></i>Pagi</div>
+              <div class="text-muted" style="font-size:10px">&lt; 09:00 WIB</div>
+            </label>
+          </div>
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="sesi" id="sesiSiang" value="siang" <?= $defaultSesi === 'siang' ? 'checked' : '' ?>>
+            <label class="btn btn-outline-primary btn-sm w-100 rounded-3 py-2 text-start" for="sesiSiang">
+              <div class="fw-bold" style="font-size:12px"><i class="bi bi-brightness-high-fill text-primary me-1"></i>Siang</div>
+              <div class="text-muted" style="font-size:10px">&lt; 14:00 WIB</div>
+            </label>
+          </div>
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="sesi" id="sesiLain" value="insidental" <?= $defaultSesi === 'insidental' ? 'checked' : '' ?>>
+            <label class="btn btn-outline-secondary btn-sm w-100 rounded-3 py-2 text-start" for="sesiLain">
+              <div class="fw-bold" style="font-size:12px"><i class="bi bi-arrow-repeat text-secondary me-1"></i>Rutin</div>
+              <div class="text-muted" style="font-size:10px">Insidental</div>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <!-- Detail Tanggal & Waktu (Collapse Ringkas) -->
       <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
         <div class="small text-muted d-flex align-items-center gap-2">
@@ -355,6 +389,20 @@ const allPetugas = <?= json_encode(array_column($petugas, 'name', 'id')) ?>;
 
 let currentSelectedGedungId = null;
 let currentGedungRooms = [];
+
+// Auto-select jika diarahkan dari Jadwal Foto Kebersihan
+document.addEventListener('DOMContentLoaded', () => {
+  const preId = <?= (int)($selectedRuanganId ?? 0) ?>;
+  if (preId > 0 && Array.isArray(allRuangan)) {
+    const targetRoom = allRuangan.find(r => parseInt(r.id) === preId);
+    if (targetRoom) {
+      currentSelectedGedungId = targetRoom.gedung_id;
+      document.getElementById('displayGedungTitle').textContent = targetRoom.gedung_nama;
+      document.getElementById('displayGedungSub').textContent = 'Unit: ' + (targetRoom.gedung_unit || 'ALWILDAN 8').toUpperCase();
+      pilihRuangan(targetRoom.id, targetRoom.nama, targetRoom.lantai_nama, targetRoom.assigned_user_id);
+    }
+  }
+});
 
 // 1. Modal Triggers
 function openModalGedung() {

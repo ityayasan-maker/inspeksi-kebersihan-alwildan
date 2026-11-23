@@ -135,30 +135,34 @@ class UploadController extends Controller
     /* ── GET /upload/gallery/:id (AJAX) ──────────────────── */
     public function gallery(string $inspeksiId): void
     {
-        $id = (int)$inspeksiId;
+        $iid = (int)$inspeksiId;
         $photos = [];
 
-        // 1. Ambil foto ruangan utama jika ada
-        $inspeksi = (new InspeksiModel())->find($id);
+        // 1. Ambil foto dokumentasi ruangan utama dari tabel inspeksi
+        $inspeksiModel = new InspeksiModel();
+        $inspeksi = $inspeksiModel->find($iid);
+
         if ($inspeksi && !empty($inspeksi['foto_ruangan'])) {
             $photos[] = [
                 'id'         => 0,
                 'standar_id' => 0,
                 'aspek'      => 'Dokumentasi Kondisi Ruangan',
                 'kondisi'    => $inspeksi['status'] ?? 'bersih',
+                'catatan'    => $inspeksi['catatan_umum'] ?? 'Kondisi umum ruangan saat inspeksi dimulai',
                 'filename'   => $inspeksi['foto_ruangan'],
-                'url'        => Helper::uploadUrl("inspeksi/{$id}/{$inspeksi['foto_ruangan']}"),
-                'is_ruangan' => true,
+                'url'        => Helper::uploadUrl("inspeksi/{$iid}/{$inspeksi['foto_ruangan']}"),
+                'is_utama'   => true,
             ];
         }
 
-        // 2. Ambil foto checklist per item
+        // 2. Ambil foto-foto checklist detail
         $details = $this->detailModel->query(
-            "SELECT d.id, d.standar_id, d.foto, d.kondisi, sk.aspek
+            "SELECT d.id, d.standar_id, d.foto, d.kondisi, d.catatan, COALESCE(sk.aspek, 'Item Checklist') AS aspek
              FROM inspeksi_detail d
-             JOIN standar_kebersihan sk ON sk.id = d.standar_id
-             WHERE d.inspeksi_id = ? AND d.foto IS NOT NULL AND d.foto != ''",
-            [$id]
+             LEFT JOIN standar_kebersihan sk ON sk.id = d.standar_id
+             WHERE d.inspeksi_id = ? AND d.foto IS NOT NULL AND d.foto != ''
+             ORDER BY d.id ASC",
+            [$iid]
         );
 
         foreach ($details as $d) {
@@ -167,12 +171,18 @@ class UploadController extends Controller
                 'standar_id' => $d['standar_id'],
                 'aspek'      => $d['aspek'],
                 'kondisi'    => $d['kondisi'],
+                'catatan'    => $d['catatan'] ?? '',
                 'filename'   => $d['foto'],
-                'url'        => Helper::uploadUrl("inspeksi/{$id}/{$d['foto']}"),
-                'is_ruangan' => false,
+                'url'        => Helper::uploadUrl("inspeksi/{$iid}/{$d['foto']}"),
+                'is_utama'   => false,
             ];
         }
 
-        $this->json(['total' => count($photos), 'photos' => $photos]);
+        $this->json([
+            'total'        => count($photos),
+            'ruangan_nama' => $inspeksi['ruangan_nama'] ?? '',
+            'tanggal'      => $inspeksi['tanggal'] ?? '',
+            'photos'       => $photos
+        ]);
     }
 }

@@ -19,6 +19,77 @@ $unitColor = [
 ];
 ?>
 
+<?php if (!empty($jadwalSummary)): ?>
+<!-- ── Widget Jadwal Foto Kebersihan Hari Ini (Pagi < 09:00 & Siang < 14:00) ── -->
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #0a192f 0%, #0f2744 60%, #1a56db 100%); color:#fff;">
+  <div class="card-body p-3 p-md-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <span class="badge bg-white text-primary fw-bold mb-1" style="font-size:10.5px">AL-WILDAN 8 KEMANG</span>
+        <h5 class="fw-bold mb-0 text-white"><i class="bi bi-clock-history me-2 text-warning"></i>Jadwal Foto Kebersihan Hari Ini</h5>
+        <div class="text-white-50 small">Target: Sebelum Jam 09:00 Pagi &bull; Sebelum Jam 14:00 Siang</div>
+      </div>
+      <a href="<?= Helper::baseUrl('jadwal') ?>" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold shadow-xs">
+        <i class="bi bi-calendar-check me-1"></i>Buka Jadwal Lengkap &rarr;
+      </a>
+    </div>
+
+    <div class="row g-2">
+      <!-- Sesi Pagi -->
+      <div class="col-6 col-md-4">
+        <div class="p-2 p-md-3 rounded-3" style="background:rgba(255,255,255,0.1); backdrop-filter:blur(4px);">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="badge bg-warning text-dark fw-bold" style="font-size:10px">Sesi Pagi</span>
+            <small class="text-white-50">&lt; 09:00 WIB</small>
+          </div>
+          <div class="fs-4 fw-bold text-white"><?= $jadwalSummary['pagi_done'] ?><span class="fs-6 fw-normal text-white-50">/<?= $jadwalSummary['pagi_total'] ?></span></div>
+          <div class="progress mt-1" style="height:4px; background:rgba(255,255,255,0.2)">
+            <div class="progress-bar bg-warning" style="width:<?= $jadwalSummary['pagi_persen'] ?>%"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-1 text-white-50" style="font-size:10px">
+            <span class="text-success"><i class="bi bi-check"></i><?= $jadwalSummary['pagi_tepat'] ?> Tepat</span>
+            <span class="text-warning"><i class="bi bi-clock"></i><?= $jadwalSummary['pagi_telat'] ?> Telat</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sesi Siang -->
+      <div class="col-6 col-md-4">
+        <div class="p-2 p-md-3 rounded-3" style="background:rgba(255,255,255,0.1); backdrop-filter:blur(4px);">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="badge bg-info text-dark fw-bold" style="font-size:10px">Sesi Siang</span>
+            <small class="text-white-50">&lt; 14:00 WIB</small>
+          </div>
+          <div class="fs-4 fw-bold text-white"><?= $jadwalSummary['siang_done'] ?><span class="fs-6 fw-normal text-white-50">/<?= $jadwalSummary['siang_total'] ?></span></div>
+          <div class="progress mt-1" style="height:4px; background:rgba(255,255,255,0.2)">
+            <div class="progress-bar bg-info" style="width:<?= $jadwalSummary['siang_persen'] ?>%"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-1 text-white-50" style="font-size:10px">
+            <span class="text-success"><i class="bi bi-check"></i><?= $jadwalSummary['siang_tepat'] ?> Tepat</span>
+            <span class="text-warning"><i class="bi bi-clock"></i><?= $jadwalSummary['siang_telat'] ?> Telat</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Progress -->
+      <div class="col-12 col-md-4">
+        <div class="p-2 p-md-3 rounded-3" style="background:rgba(255,255,255,0.1); backdrop-filter:blur(4px);">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="badge bg-success fw-bold" style="font-size:10px">Total Kepatuhan</span>
+            <span class="badge bg-white text-dark" style="font-size:10px"><?= $jadwalSummary['total_persen'] ?>% Selesai</span>
+          </div>
+          <div class="fs-4 fw-bold text-white"><?= $jadwalSummary['done'] ?><span class="fs-6 fw-normal text-white-50">/<?= $jadwalSummary['total'] ?></span></div>
+          <div class="progress mt-1" style="height:4px; background:rgba(255,255,255,0.2)">
+            <div class="progress-bar bg-success" style="width:<?= $jadwalSummary['total_persen'] ?>%"></div>
+          </div>
+          <div class="text-white-50 mt-1" style="font-size:10px">8 Staf Kebersihan Al-Wildan 8</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
+
 <!-- ── Kartu statistik ── -->
 <div class="row g-3 mb-4 stagger-children">
 

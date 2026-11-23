@@ -123,7 +123,7 @@ class UserController extends Controller
         $phone = trim($this->post('phone', ''));
         $pw    = $this->post('password', '');
         $pw2   = $this->post('password_confirm', '');
-        $roles = ['admin','supervisor','petugas'];
+        $roles = ['admin','supervisor','penilai','petugas'];
 
         if (!$name || !$email || !in_array($role, $roles)) return [null, 'Data tidak lengkap.'];
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return [null, 'Format email tidak valid.'];

@@ -1,66 +1,34 @@
 /**
- * upload.js — foto upload, preview, gallery
+ * upload.js — Foto upload, preview, dan modal gallery inspeksi
  */
 
-const getBaseUrl = () => window.BASE_URL || '';
-
-function compressCanvas(file, maxDim, quality, cb) {
-  if (!file || !file.type.startsWith('image/')) { cb(file, null); return; }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      let w = img.width, h = img.height;
-      if (w > maxDim || h > maxDim) {
-        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
-        else { w = Math.round((w * maxDim) / h); h = maxDim; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      canvas.toBlob(function(blob) {
-        if (!blob) { cb(file, e.target.result); return; }
-        try {
-          const compFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() });
-          cb(compFile, canvas.toDataURL('image/jpeg', quality));
-        } catch(err) {
-          cb(file, e.target.result);
-        }
-      }, 'image/jpeg', quality);
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
+let currentGalleryPhotos = [];
+let currentGalleryIndex = 0;
 
 function handleFotoChange(input) {
   const uid = input.dataset.uid;
   const file = input.files[0];
   if (!file) return;
-
-  compressCanvas(file, 1280, 0.8, function(compFile, dataUrl) {
-    if (window.DataTransfer && compFile !== file) {
-      try {
-        const dt = new DataTransfer();
-        dt.items.add(compFile);
-        input.files = dt.files;
-      } catch(e) {}
-    }
-
+  const allowed = ['image/jpeg','image/png','image/webp'];
+  if (!allowed.includes(file.type)) {
+    Swal.fire({icon:'error',title:'Format tidak didukung',text:'Gunakan JPG, PNG, atau WebP.'});
+    input.value=''; return;
+  }
+  if (file.size/1024 > 2048) {
+    Swal.fire({icon:'error',title:'File terlalu besar',text:'Maksimal 2 MB.'});
+    input.value=''; return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
     Swal.fire({
-      title: 'Upload foto ini?',
-      html: `<img src="${dataUrl || ''}" class="img-fluid rounded mb-2 shadow-xs" style="max-height:220px; object-fit:contain">
-             <div class="small text-muted">${escH(file.name)} (${Math.round(compFile.size/1024)} KB)</div>`,
-      showCancelButton: true,
-      confirmButtonText: '<i class="bi bi-cloud-arrow-up me-1"></i>Upload',
-      cancelButtonText: 'Batal',
-      confirmButtonColor: '#166534',
-    }).then(r => {
-      if (r.isConfirmed) doUpload(uid);
-      else input.value = '';
-    });
-  });
+      title:'Upload foto ini?',
+      html:`<img src="${e.target.result}" class="img-fluid rounded mb-2" style="max-height:200px">
+            <div class="small text-muted">${escH(file.name)}</div>`,
+      showCancelButton:true, confirmButtonText:'Upload', cancelButtonText:'Batal',
+      confirmButtonColor:'#2d8653',
+    }).then(r => { if(r.isConfirmed) doUpload(uid); else input.value=''; });
+  };
+  reader.readAsDataURL(file);
 }
 
 function doUpload(uid) {
@@ -78,7 +46,8 @@ function doUpload(uid) {
   fd.append('inspeksi_id', inspeksiId);
   fd.append('standar_id',  standarId);
 
-  fetch(getBaseUrl()+'/upload/inspeksi-foto', {
+  const baseUrl = (window.BASE_URL || '').replace(/\/+$/, '');
+  fetch(baseUrl + '/upload/inspeksi-foto', {
     method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body:fd
   })
   .then(r=>r.json())
@@ -132,7 +101,11 @@ function deleteFoto(uid, inspeksiId, standarId, filename) {
     fd.append('inspeksi_id', inspeksiId);
     fd.append('standar_id',  standarId);
     fd.append('filename',    filename);
-    fetch(getBaseUrl()+'/upload/delete',{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'},body:fd})
+
+    const baseUrl = (window.BASE_URL || '').replace(/\/+$/, '');
+    fetch(baseUrl + '/upload/delete', {
+      method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'},body:fd
+    })
     .then(r=>r.json()).then(data=>{
       if(data.success){
         document.getElementById(uid+'_preview')?.remove();
@@ -144,104 +117,164 @@ function deleteFoto(uid, inspeksiId, standarId, filename) {
   });
 }
 
-function openGallery(url, caption, badgeText = '', badgeClass = 'bg-success') {
+/**
+ * Buka Galeri Foto untuk satu sesi inspeksi
+ */
+function loadGallery(inspeksiId, ruanganNama = '') {
   const modalEl = document.getElementById('galleryModal');
-  if (!modalEl) return;
-  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-  document.getElementById('galleryGrid').classList.add('d-none');
-  document.getElementById('galleryLoading').classList.add('d-none');
-  document.getElementById('galleryEmpty').classList.add('d-none');
-  document.getElementById('galleryMain').classList.remove('d-none');
-  document.getElementById('galleryMainImg').src = url;
-  document.getElementById('galleryCaption').textContent = caption || '';
-
-  const badgeEl = document.getElementById('galleryMainBadge');
-  if (badgeEl) {
-    if (badgeText) {
-      badgeEl.textContent = badgeText;
-      badgeEl.className = 'badge ' + badgeClass;
-      badgeEl.classList.remove('d-none');
-    } else {
-      badgeEl.classList.add('d-none');
-    }
+  if (!modalEl) {
+    console.warn('#galleryModal tidak ditemukan di halaman');
+    return;
   }
-
-  document.getElementById('galleryTitle').textContent = 'Detail Foto Dokumentasi';
-  modal.show();
-}
-
-function backToGrid() {
-  document.getElementById('galleryMain').classList.add('d-none');
-  document.getElementById('galleryGrid').classList.remove('d-none');
-  document.getElementById('galleryTitle').textContent = window._currentGalleryTitle || 'Galeri Dokumentasi Foto';
-}
-
-function loadGallery(inspeksiId) {
-  const modalEl = document.getElementById('galleryModal');
-  if (!modalEl) return;
   const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-  window._currentGalleryTitle = 'Dokumentasi Foto Inspeksi #' + inspeksiId;
+  // Reset UI
   document.getElementById('galleryMain').classList.add('d-none');
+  document.getElementById('galleryGridWrap').classList.remove('d-none');
+  document.getElementById('galleryBtnBack').classList.add('d-none');
   document.getElementById('galleryGrid').innerHTML = '';
-  document.getElementById('galleryGrid').classList.remove('d-none');
   document.getElementById('galleryLoading').classList.remove('d-none');
   document.getElementById('galleryEmpty').classList.add('d-none');
-  document.getElementById('galleryTitle').textContent = window._currentGalleryTitle;
+  
+  const titleText = 'Galeri Foto #' + inspeksiId + (ruanganNama ? ' &mdash; ' + escH(ruanganNama) : '');
+  document.getElementById('galleryTitle').innerHTML = '<i class="bi bi-images me-2 text-info"></i>' + titleText;
   modal.show();
 
-  const url = `${getBaseUrl()}/upload/gallery/${inspeksiId}`;
-  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(r => {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(data => {
-      document.getElementById('galleryLoading').classList.add('d-none');
-      if (!data.photos || !data.photos.length) {
-        document.getElementById('galleryEmpty').classList.remove('d-none');
-        return;
-      }
+  const baseUrl = (window.BASE_URL || '').replace(/\/+$/, '');
+  fetch(baseUrl + '/upload/gallery/' + inspeksiId, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('galleryLoading').classList.add('d-none');
+    currentGalleryPhotos = data.photos || [];
 
-      const grid = document.getElementById('galleryGrid');
-      const kc = k => k === 'bersih' ? 'bg-success' : (k === 'kurang_bersih' ? 'bg-warning text-dark' : 'bg-danger');
-      const kl = k => k === 'bersih' ? 'Bersih' : (k === 'kurang_bersih' ? 'Kurang' : 'Kotor');
+    if (!currentGalleryPhotos.length) {
+      document.getElementById('galleryEmpty').classList.remove('d-none');
+      return;
+    }
 
-      data.photos.forEach(p => {
-        const isRuangan = p.is_ruangan || false;
-        const badgeClass = isRuangan ? 'bg-primary' : kc(p.kondisi);
-        const badgeText = isRuangan ? 'Ruangan' : kl(p.kondisi);
+    const grid = document.getElementById('galleryGrid');
+    const badgeClass = k => k === 'bersih' ? 'success' : (k === 'kurang_bersih' ? 'warning text-dark' : 'danger');
+    const statusLabel = k => k === 'bersih' ? 'Bersih' : (k === 'kurang_bersih' ? 'Kurang' : 'Kotor');
 
-        grid.innerHTML += `
+    currentGalleryPhotos.forEach((p, idx) => {
+      const isUtamaBadge = p.is_utama ? '<span class="badge bg-primary position-absolute top-0 start-0 m-1" style="font-size:9.5px"><i class="bi bi-camera me-1"></i>Ruangan</span>' : '';
+      grid.innerHTML += `
         <div class="col-6 col-md-4 col-lg-3">
-          <div class="card h-100 bg-secondary bg-opacity-25 border border-secondary border-opacity-50 overflow-hidden shadow-sm"
-               style="cursor:pointer; border-radius:10px;"
-               onclick="openGallery('${p.url}', '${escH(p.aspek)}', '${badgeText}', '${badgeClass}')">
-            <div class="position-relative" style="aspect-ratio:4/3; background:#111">
-              <img src="${p.url}" class="w-100 h-100" style="object-fit:cover" loading="lazy" alt="${escH(p.aspek)}">
-              <div class="position-absolute top-0 end-0 m-1">
-                <span class="badge ${badgeClass}" style="font-size:10px">${badgeText}</span>
-              </div>
+          <div class="card bg-dark border border-secondary border-opacity-50 overflow-hidden shadow-sm h-100" style="cursor:pointer; transition:transform .15s" onclick="viewGalleryPhoto(${idx})" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+            <div class="position-relative" style="aspect-ratio: 4/3; background:#111">
+              ${isUtamaBadge}
+              <img src="${p.url}" class="w-100 h-100" style="object-fit:cover" alt="${escH(p.aspek)}" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'120\\' height=\\'90\\' fill=\\'%23555\\'><rect width=\\'120\\' height=\\'90\\' fill=\\'%23222\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23888\\' text-anchor=\\'middle\\' font-size=\\'12\\'>Foto</text></svg>'">
             </div>
-            <div class="p-2" style="background:rgba(20,25,35,0.85)">
-              <div class="text-white small fw-semibold text-truncate" title="${escH(p.aspek)}" style="font-size:11.5px">
-                ${escH(p.aspek)}
+            <div class="p-2" style="background:rgba(20,25,35,0.95)">
+              <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                <span class="badge bg-${badgeClass(p.kondisi)}" style="font-size:9.5px">${statusLabel(p.kondisi)}</span>
+                ${p.is_utama ? '<span class="text-white-50" style="font-size:9.5px">Utama</span>' : ''}
               </div>
-              <div class="text-white-50" style="font-size:10px">
-                <i class="bi bi-arrows-fullscreen me-1"></i>Klik perbesar
-              </div>
+              <div class="text-white text-truncate fw-semibold" style="font-size:11.5px" title="${escH(p.aspek)}">${escH(p.aspek)}</div>
+              ${p.catatan ? `<div class="text-white-50 text-truncate mt-1" style="font-size:10.5px"><i class="bi bi-chat-text me-1"></i>${escH(p.catatan)}</div>` : ''}
             </div>
           </div>
         </div>`;
-      });
-    })
-    .catch(err => {
-      console.warn('[Gallery] Fetch error:', err);
-      document.getElementById('galleryLoading').classList.add('d-none');
-      document.getElementById('galleryEmpty').classList.remove('d-none');
     });
+  })
+  .catch(err => {
+    console.error('Gallery load error:', err);
+    document.getElementById('galleryLoading').classList.add('d-none');
+    document.getElementById('galleryEmpty').classList.remove('d-none');
+  });
 }
+
+/**
+ * Tampilkan foto tunggal (lightbox view)
+ */
+function viewGalleryPhoto(idx) {
+  if (!currentGalleryPhotos || !currentGalleryPhotos[idx]) return;
+  currentGalleryIndex = idx;
+  const p = currentGalleryPhotos[idx];
+
+  document.getElementById('galleryGridWrap').classList.add('d-none');
+  document.getElementById('galleryMain').classList.remove('d-none');
+  document.getElementById('galleryBtnBack').classList.remove('d-none');
+
+  document.getElementById('galleryMainImg').src = p.url;
+  document.getElementById('galleryCaption').textContent = p.aspek || 'Foto Dokumentasi';
+  document.getElementById('gallerySubCaption').innerHTML = 
+    (p.is_utama ? '<span class="badge bg-primary me-1">Foto Ruangan</span> ' : '') + 
+    (p.kondisi ? '<span class="badge bg-' + (p.kondisi === 'bersih' ? 'success' : (p.kondisi === 'kurang_bersih' ? 'warning text-dark' : 'danger')) + ' me-1">' + (p.kondisi === 'bersih' ? 'Bersih' : (p.kondisi === 'kurang_bersih' ? 'Kurang Bersih' : 'Kotor')) + '</span> ' : '') +
+    (p.catatan ? '<span class="text-light fst-italic">"' + escH(p.catatan) + '"</span>' : '');
+  
+  document.getElementById('galleryCounter').textContent = `${idx + 1} / ${currentGalleryPhotos.length}`;
+  document.getElementById('galleryDownloadBtn').href = p.url;
+
+  // Tombol navigasi prev / next
+  const btnPrev = document.getElementById('btnPrevPhoto');
+  const btnNext = document.getElementById('btnNextPhoto');
+  if (currentGalleryPhotos.length > 1) {
+    btnPrev.classList.remove('d-none');
+    btnNext.classList.remove('d-none');
+  } else {
+    btnPrev.classList.add('d-none');
+    btnNext.classList.add('d-none');
+  }
+}
+
+/**
+ * Navigasi foto sebelumnya (-1) atau selanjutnya (+1)
+ */
+function navGalleryPhoto(dir) {
+  let newIdx = currentGalleryIndex + dir;
+  if (newIdx < 0) newIdx = currentGalleryPhotos.length - 1;
+  if (newIdx >= currentGalleryPhotos.length) newIdx = 0;
+  viewGalleryPhoto(newIdx);
+}
+
+/**
+ * Kembali dari single photo view ke tampilan grid
+ */
+function showGalleryGrid() {
+  document.getElementById('galleryMain').classList.add('d-none');
+  document.getElementById('galleryGridWrap').classList.remove('d-none');
+  document.getElementById('galleryBtnBack').classList.add('d-none');
+}
+
+/**
+ * Buka foto tunggal langsung di modal gallery
+ */
+function openGallery(url, caption = '') {
+  const modalEl = document.getElementById('galleryModal');
+  if (!modalEl) {
+    window.open(url, '_blank');
+    return;
+  }
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+  currentGalleryPhotos = [{
+    url: url,
+    aspek: caption || 'Foto Dokumentasi',
+    catatan: '',
+    is_utama: false,
+    kondisi: ''
+  }];
+  currentGalleryIndex = 0;
+
+  document.getElementById('galleryTitle').innerHTML = '<i class="bi bi-image me-2 text-info"></i>Foto Dokumentasi';
+  document.getElementById('galleryLoading').classList.add('d-none');
+  document.getElementById('galleryEmpty').classList.add('d-none');
+
+  viewGalleryPhoto(0);
+  document.getElementById('galleryBtnBack').classList.add('d-none');
+  document.getElementById('btnPrevPhoto').classList.add('d-none');
+  document.getElementById('btnNextPhoto').classList.add('d-none');
+
+  modal.show();
+}
+
+// Alias untuk kompatibilitas showPhoto
+window.showPhoto = function(src, caption = '') {
+  openGallery(src, caption);
+};
 
 function showToast(type, message) {
   Swal.fire({toast:true,position:'top-end',icon:type,title:message,
